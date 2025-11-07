@@ -63,20 +63,19 @@ async def update_case(case_id: int, case_update: CaseUpdate, db: Session = Depen
 
 @router.delete("/{case_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_case(case_id: int, db: Session = Depends(get_db)):
-    """Delete a case and all associated data including meetings, insights, action items, and Pinecone vectors"""
+    """Delete a case and all associated data including meetings, insights, action items, documents, and Pinecone vectors"""
     db_case = db.query(Case).filter(Case.id == case_id).first()
     if not db_case:
         raise HTTPException(status_code=404, detail="Case not found")
     
-    # Get all meetings for this case
-    meetings = db.query(Meeting).filter(Meeting.case_id == case_id).all()
+    # Delete all vectors for this case from Pinecone (meetings + documents)
+    try:
+        await pinecone_service.delete_case_content(case_id)
+    except Exception as e:
+        print(f"Error deleting case {case_id} from Pinecone: {e}")
     
-    # Delete from Pinecone for each meeting
-    for meeting in meetings:
-        try:
-            await pinecone_service.delete_meeting_content(meeting.id)
-        except Exception as e:
-            print(f"Error deleting meeting {meeting.id} from Pinecone: {e}")
+    # Get all meetings for this case to delete insights
+    meetings = db.query(Meeting).filter(Meeting.case_id == case_id).all()
     
     # Delete insights associated with meetings
     for meeting in meetings:

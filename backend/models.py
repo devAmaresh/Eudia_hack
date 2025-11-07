@@ -11,12 +11,14 @@ class Case(Base):
     case_number = Column(String, unique=True, index=True)
     title = Column(String, index=True)
     description = Column(Text, nullable=True)
+    client_side = Column(String, nullable=True)  # plaintiff, defendant, petitioner, respondent
     status = Column(String, default="active")  # active, closed, pending
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     meetings = relationship("Meeting", back_populates="case", cascade="all, delete-orphan")
     action_items = relationship("ActionItem", back_populates="case", cascade="all, delete-orphan")
+    documents = relationship("CaseDocument", back_populates="case", cascade="all, delete-orphan")
 
 
 class Meeting(Base):
@@ -98,4 +100,20 @@ class EmailLog(Base):
     sent_at = Column(DateTime, default=datetime.utcnow)
     
     meeting = relationship("Meeting")
+    case = relationship("Case")
+
+
+class CaseDocument(Base):
+    __tablename__ = "case_documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    case_id = Column(Integer, ForeignKey("cases.id"))
+    title = Column(String)
+    file_path = Column(String)
+    file_type = Column(String)  # pdf, docx, txt, etc.
+    file_size = Column(Integer, nullable=True)  # in bytes
+    description = Column(Text, nullable=True)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    
+    case = relationship("Case", back_populates="documents")
     case = relationship("Case")

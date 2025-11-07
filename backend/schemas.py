@@ -7,6 +7,7 @@ class CaseBase(BaseModel):
     case_number: str
     title: str
     description: Optional[str] = None
+    client_side: Optional[str] = None  # plaintiff, defendant, petitioner, respondent
     status: str = "active"
 
 
@@ -17,6 +18,7 @@ class CaseCreate(CaseBase):
 class CaseUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
+    client_side: Optional[str] = None
     status: Optional[str] = None
 
 
@@ -112,6 +114,7 @@ class ChatMessage(BaseModel):
     message: str
     case_id: Optional[int] = None
     session_id: Optional[str] = None
+    web_search: Optional[bool] = False
 
 
 class ChatResponse(BaseModel):

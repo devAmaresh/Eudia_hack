@@ -2,6 +2,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '@/types';
 import type {
   Case,
+  CaseDocument,
   Meeting,
   Insight,
   ActionItem,
@@ -79,5 +80,21 @@ export const testEmailConfig = () => api.get('/api/email/test');
 
 export const getEmailHistory = (params?: { case_id?: number; meeting_id?: number }) => 
   api.get('/api/email/history', { params });
+
+// Case Documents
+export const uploadCaseDocument = (caseId: number, formData: FormData) => {
+  formData.append('case_id', caseId.toString());
+  return api.post<CaseDocument>('/api/case-documents/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
+export const getCaseDocuments = (caseId: number) => 
+  api.get<CaseDocument[]>(`/api/case-documents/case/${caseId}`);
+
+export const deleteCaseDocument = (documentId: number) => 
+  api.delete(`/api/case-documents/${documentId}`);
 
 export default api;

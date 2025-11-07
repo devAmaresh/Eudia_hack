@@ -5,9 +5,21 @@ export interface Case {
   case_number: string;
   title: string;
   description?: string;
+  client_side?: string; // plaintiff, defendant, petitioner, respondent
   status: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface CaseDocument {
+  id: number;
+  case_id: number;
+  title: string;
+  description?: string;
+  file_type: string;
+  file_size: number;
+  file_path?: string;
+  uploaded_at: string;
 }
 
 export interface Meeting {
@@ -52,6 +64,7 @@ export interface ChatMessage {
   message: string;
   case_id?: number;
   session_id?: string;
+  web_search?: boolean;
 }
 
 export interface ChatResponse {

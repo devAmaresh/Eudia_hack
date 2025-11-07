@@ -207,26 +207,51 @@ class PineconeService:
                 filter=filter_dict if filter_dict else None
             )
             
-            # Group results by meeting_id and aggregate
-            meeting_results = {}
+            # Group results by content type (document or meeting) and their IDs
+            content_results = {}
             for match in results.matches:
-                meeting_id = match.metadata.get("meeting_id")
+                content_type = match.metadata.get("type", "transcript_chunk")
                 
-                if meeting_id not in meeting_results:
-                    meeting_results[meeting_id] = {
-                        "id": f"meeting_{meeting_id}",
-                        "meeting_id": meeting_id,
-                        "score": match.score,  # Use highest score
-                        "chunks": [],
-                        "metadata": {
-                            "case_id": match.metadata.get("case_id"),
-                            "title": match.metadata.get("title"),
-                            "case_number": match.metadata.get("case_number"),
+                if content_type == "case_document":
+                    # Group by document_id for documents
+                    document_id = match.metadata.get("document_id")
+                    content_key = f"document_{document_id}"
+                    
+                    if content_key not in content_results:
+                        content_results[content_key] = {
+                            "id": content_key,
+                            "document_id": document_id,
+                            "score": match.score,
+                            "chunks": [],
+                            "metadata": {
+                                "type": "case_document",
+                                "case_id": match.metadata.get("case_id"),
+                                "title": match.metadata.get("title"),
+                                "document_id": document_id,
+                            }
                         }
-                    }
+                else:
+                    # Group by meeting_id for transcripts
+                    meeting_id = match.metadata.get("meeting_id")
+                    content_key = f"meeting_{meeting_id}"
+                    
+                    if content_key not in content_results:
+                        content_results[content_key] = {
+                            "id": content_key,
+                            "meeting_id": meeting_id,
+                            "score": match.score,
+                            "chunks": [],
+                            "metadata": {
+                                "type": "transcript_chunk",
+                                "case_id": match.metadata.get("case_id"),
+                                "title": match.metadata.get("title"),
+                                "case_number": match.metadata.get("case_number"),
+                                "meeting_id": meeting_id,
+                            }
+                        }
                 
-                # Add this chunk to the meeting's chunks
-                meeting_results[meeting_id]["chunks"].append({
+                # Add this chunk to the content's chunks
+                content_results[content_key]["chunks"].append({
                     "score": match.score,
                     "content": match.metadata.get("content", ""),
                     "type": match.metadata.get("type", ""),
@@ -234,19 +259,19 @@ class PineconeService:
                 })
                 
                 # Update score to be the maximum (most relevant chunk)
-                meeting_results[meeting_id]["score"] = max(
-                    meeting_results[meeting_id]["score"],
+                content_results[content_key]["score"] = max(
+                    content_results[content_key]["score"],
                     match.score
                 )
             
             # Convert to list and sort by best score
             aggregated_results = sorted(
-                meeting_results.values(),
+                content_results.values(),
                 key=lambda x: x["score"],
                 reverse=True
             )
             
-            # Limit to original top_k meetings
+            # Limit to original top_k items (documents + meetings combined)
             aggregated_results = aggregated_results[:top_k]
             
             # Format final results
@@ -261,7 +286,7 @@ class PineconeService:
                 final_results.append({
                     "id": result["id"],
                     "score": result["score"],
-                    "content": all_content[:2000],  # Limit combined content
+                    "content": all_content,  # Limit combined content
                     "metadata": {
                         **result["metadata"],
                         "chunks_found": len(result["chunks"]),
@@ -329,6 +354,103 @@ class PineconeService:
         except Exception as e:
             print(f"Error getting chunks info: {e}")
             return {"error": str(e)}
+    
+    async def store_case_document(
+        self,
+        document_id: int,
+        case_id: int,
+        content: str,
+        metadata: Dict[str, Any] = None
+    ):
+        """Store case document content in Pinecone with chunking"""
+        if not self.index:
+            print("Pinecone index not available - skipping vector storage")
+            return
+        
+        if not self.embedding_enabled:
+            print("Embeddings disabled - skipping vector storage")
+            return
+
+        try:
+            doc_metadata = metadata or {}
+            vectors_to_upsert = []
+            
+            # Create metadata header for context
+            metadata_header = []
+            if doc_metadata.get('title'):
+                metadata_header.append(f"Document: {doc_metadata['title']}")
+            if doc_metadata.get('case_number'):
+                metadata_header.append(f"Case: {doc_metadata['case_number']}")
+            if doc_metadata.get('client_side'):
+                metadata_header.append(f"Client Side: {doc_metadata['client_side']}")
+            metadata_context = "\n".join(metadata_header)
+            
+            # Chunk the document content
+            content_chunks = self.text_splitter.split_text(content)
+            
+            print(f"Split document into {len(content_chunks)} chunks for document {document_id}")
+            
+            # Store each chunk as a separate vector
+            for chunk_idx, chunk in enumerate(content_chunks):
+                chunk_with_context = f"{metadata_context}\n\nDocument Content Part {chunk_idx + 1}:\n{chunk}"
+                
+                embedding = self._generate_embedding(chunk_with_context)
+                
+                if embedding is None:
+                    print(f"Failed to generate embedding for chunk {chunk_idx} of document {document_id}")
+                    continue
+                
+                vector = {
+                    "id": f"document_{document_id}_chunk_{chunk_idx}",
+                    "values": embedding,
+                    "metadata": {
+                        "document_id": document_id,
+                        "case_id": case_id,
+                        "type": "case_document",
+                        "chunk_index": chunk_idx,
+                        "total_chunks": len(content_chunks),
+                        "content": chunk[:1000],
+                        "chunk_length": len(chunk),
+                        **(metadata or {})
+                    }
+                }
+                vectors_to_upsert.append(vector)
+            
+            # Upsert in batches
+            if vectors_to_upsert:
+                batch_size = 100
+                for i in range(0, len(vectors_to_upsert), batch_size):
+                    batch = vectors_to_upsert[i:i + batch_size]
+                    self.index.upsert(vectors=batch)
+                
+                print(f"Successfully stored document {document_id}: {len(content_chunks)} chunks")
+            else:
+                print(f"No vectors created for document {document_id}")
+                
+        except Exception as e:
+            print(f"Error storing case document: {e}")
+    
+    async def delete_case_document(self, document_id: int):
+        """Delete all vectors related to a case document"""
+        if not self.index:
+            return
+
+        try:
+            self.index.delete(filter={"document_id": document_id})
+            print(f"Deleted all vectors for document {document_id}")
+        except Exception as e:
+            print(f"Error deleting document content: {e}")
+    
+    async def delete_case_content(self, case_id: int):
+        """Delete all vectors related to a case (documents and meetings)"""
+        if not self.index:
+            return
+
+        try:
+            self.index.delete(filter={"case_id": case_id})
+            print(f"Deleted all vectors for case {case_id}")
+        except Exception as e:
+            print(f"Error deleting case content: {e}")
 
 
 # Singleton instance

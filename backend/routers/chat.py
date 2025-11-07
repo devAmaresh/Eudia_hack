@@ -76,7 +76,23 @@ async def chat(message: ChatMessage, db: Session = Depends(get_db)):
             context += "Relevant Case Information:\n"
             for content in similar_content:
                 context += f"- {content['content']}...\n"
-                sources.append(f"Meeting ID: {content['metadata'].get('meeting_id')}")
+                # Add source with proper identification
+                metadata = content.get('metadata', {})
+                content_type = metadata.get('type', 'unknown')
+                if content_type == 'case_document':
+                    doc_id = metadata.get('document_id')
+                    doc_title = metadata.get('title', 'Document')  # Fixed: metadata uses 'title' not 'document_title'
+                    if doc_id:
+                        sources.append(f"Case Document: {doc_title} (ID: {doc_id})")
+                elif content_type == 'transcript_chunk':
+                    meeting_id = metadata.get('meeting_id')
+                    if meeting_id:
+                        sources.append(f"Meeting Transcript (ID: {meeting_id})")
+                else:
+                    # Fallback for older data
+                    meeting_id = metadata.get('meeting_id')
+                    if meeting_id:
+                        sources.append(f"Meeting (ID: {meeting_id})")
     
     # Get chat history
     history = db.query(ChatHistory).filter(
@@ -88,14 +104,26 @@ async def chat(message: ChatMessage, db: Session = Depends(get_db)):
         for h in reversed(history)
     ]
     
-    # Check if we need external citations
-    if any(keyword in message.message.lower() for keyword in ["case law", "precedent", "citation", "legal reference"]):
+    # Web search if enabled
+    if message.web_search:
+        web_results = await search_service.search_web(message.message)
+        if web_results:
+            context += "\n\nWeb Search Results:\n"
+            for result in web_results[:5]:  # Top 5 results
+                context += f"- {result['title']}\n"
+                context += f"  {result['snippet']}\n"
+                context += f"  Source: {result['url']}\n\n"
+                sources.append(result['url'])
+    
+    # Check if we need external citations (legal context)
+    if any(keyword in message.message.lower() for keyword in ["case law", "precedent", "citation", "legal reference", "court decision", "ruling"]):
         citations = await search_service.search_legal_citations(message.message)
         if citations:
-            context += "\n\nExternal Legal References:\n"
+            context += "\n\nLegal Citations & Precedents:\n"
             for citation in citations:
-                context += f"- {citation['title']}: {citation['snippet'][:150]}...\n"
-                context += f"  Source: {citation['url']}\n"
+                context += f"- {citation['title']}\n"
+                context += f"  {citation['snippet']}\n"
+                context += f"  Source: {citation['url']}\n\n"
                 sources.append(citation['url'])
     
     # Get response from Gemini

@@ -36,12 +36,28 @@ export function ChatMessage({ role, content, timestamp, sources }: ChatMessagePr
           <div className="mt-3 pt-3 border-t border-zinc-800">
             <p className="text-xs font-semibold text-zinc-400 mb-2">Sources:</p>
             <div className="space-y-1.5">
-              {sources.map((source, i) => (
-                <div key={i} className="flex items-start gap-2 text-xs text-blue-400">
-                  <ExternalLink className="h-3 w-3 mt-0.5 shrink-0" />
-                  <span className="break-all">{source}</span>
-                </div>
-              ))}
+              {sources.map((source, i) => {
+                // Check if source is a URL
+                const isUrl = source.startsWith('http://') || source.startsWith('https://');
+                
+                return (
+                  <div key={i} className="flex items-start gap-2 text-xs">
+                    <ExternalLink className="h-3 w-3 mt-0.5 shrink-0 text-blue-400" />
+                    {isUrl ? (
+                      <a
+                        href={source}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 hover:underline break-all transition-colors"
+                      >
+                        {source}
+                      </a>
+                    ) : (
+                      <span className="text-zinc-400 break-all">{source}</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

@@ -11,6 +11,9 @@ import {
   sendChatMessage,
   updateActionItem,
   deleteActionItem,
+  uploadCaseDocument,
+  getCaseDocuments,
+  deleteCaseDocument,
 } from "@/lib/api";
 import {
   Card,
@@ -60,6 +63,9 @@ import {
   MoreVertical,
   Mail,
   Plus,
+  Info,
+  Globe,
+  Scale,
 } from "lucide-react";
 import {
   formatDate,
@@ -67,7 +73,7 @@ import {
   getStatusColor,
   cn,
 } from "@/lib/utils";
-import type { Meeting, Insight, ActionItem } from "@/types";
+import type { Meeting, Insight, ActionItem, CaseDocument } from "@/types";
 
 interface ChatMsg {
   role: "user" | "assistant";
@@ -92,6 +98,11 @@ export default function CaseDetail() {
   const [chatInput, setChatInput] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [chatSessionId, setChatSessionId] = useState<string | null>(null);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentTitle, setDocumentTitle] = useState("");
+  const [documentDescription, setDocumentDescription] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const queryClient = useQueryClient();
@@ -116,6 +127,14 @@ export default function CaseDetail() {
     queryKey: ["actionItems", caseId],
     queryFn: async () => {
       const response = await getCaseActionItems(caseId);
+      return response.data;
+    },
+  });
+
+  const { data: caseDocuments } = useQuery({
+    queryKey: ["caseDocuments", caseId],
+    queryFn: async () => {
+      const response = await getCaseDocuments(caseId);
       return response.data;
     },
   });
@@ -169,6 +188,31 @@ export default function CaseDetail() {
     mutationFn: deleteActionItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["actionItems", caseId] });
+    },
+  });
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async () => {
+      if (!documentFile) throw new Error("No file selected");
+      const formData = new FormData();
+      formData.append("file", documentFile);
+      formData.append("title", documentTitle);
+      formData.append("description", documentDescription);
+      return uploadCaseDocument(caseId, formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["caseDocuments", caseId] });
+      setIsDocumentDialogOpen(false);
+      setDocumentFile(null);
+      setDocumentTitle("");
+      setDocumentDescription("");
+    },
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: deleteCaseDocument,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["caseDocuments", caseId] });
     },
   });
 
@@ -259,6 +303,7 @@ export default function CaseDetail() {
         message: userMessage,
         case_id: caseId,
         session_id: chatSessionId || undefined, // Pass session_id or undefined to create new
+        web_search: webSearchEnabled, // Include web search flag
       });
 
       // Store the session_id from response
@@ -352,15 +397,29 @@ export default function CaseDetail() {
         <div className="flex gap-8">
           {/* Left Column - Tabs for Meetings & Action Items */}
           <div className="flex-1">
-            <Tabs defaultValue="meetings" className="space-y-6">
+            <Tabs defaultValue="details" className="space-y-6">
               <div className="flex items-center justify-between">
                 <TabsList className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 p-1 h-auto shadow-lg">
+                  <TabsTrigger
+                    value="details"
+                    className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-semibold text-sm tracking-tight px-6 py-2.5 rounded-lg text-zinc-400"
+                  >
+                    <Info className="h-4 w-4 mr-2" />
+                    Case Details
+                  </TabsTrigger>
                   <TabsTrigger
                     value="meetings"
                     className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-semibold text-sm tracking-tight px-6 py-2.5 rounded-lg text-zinc-400"
                   >
                     <Lightbulb className="h-4 w-4 mr-2" />
                     Meeting Insights
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="documents"
+                    className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-semibold text-sm tracking-tight px-6 py-2.5 rounded-lg text-zinc-400"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Case Documents
                   </TabsTrigger>
                   <TabsTrigger
                     value="actions"
@@ -437,6 +496,151 @@ export default function CaseDetail() {
                   </DialogContent>
                 </Dialog>
               </div>
+
+              {/* Case Details Tab */}
+              <TabsContent value="details" className="space-y-4 mt-6">
+                <div className="space-y-4">
+                  <h2 className="text-xl font-bold tracking-tight text-white">
+                    Case Information
+                  </h2>
+                  
+                  <Card className="border-zinc-800/80 bg-zinc-950 shadow-lg">
+                    <CardContent className="p-6 space-y-6">
+                      {/* Case Number and Status */}
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+                            <FileText className="h-4 w-4" strokeWidth={2.5} />
+                            Case Number
+                          </div>
+                          <p className="text-lg font-bold text-white">
+                            {caseData.case_number}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Client Side */}
+                      {caseData.client_side && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+                      
+                            Client Side / Representation
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <p className="text-base font-semibold text-white capitalize">
+                                {caseData.client_side}
+                              </p>
+                              <p className="text-sm text-zinc-400 mt-0.5">
+                                You are representing the {caseData.client_side} in this case
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-3 p-4 rounded-lg bg-blue-950/30 border border-blue-900/30">
+                            <p className="text-sm text-blue-200 leading-relaxed">
+                              <span className="font-semibold">AI Context:</span> The legal assistant will tailor responses considering your position as the {caseData.client_side}, providing strategic insights and recommendations aligned with your client's interests.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Description */}
+                      {caseData.description && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+                            <FileText className="h-4 w-4" strokeWidth={2.5} />
+                            Description
+                          </div>
+                          <div className="p-4 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
+                            <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                              {caseData.description}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Timestamps */}
+                      <div className="grid grid-cols-2 gap-6 pt-4 border-t border-zinc-800/50">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+                            <Calendar className="h-4 w-4" strokeWidth={2.5} />
+                            Created
+                          </div>
+                          <p className="text-sm font-medium text-zinc-400">
+                            {formatDate(caseData.created_at)}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+                            <Clock className="h-4 w-4" strokeWidth={2.5} />
+                            Last Updated
+                          </div>
+                          <p className="text-sm font-medium text-zinc-400">
+                            {formatDate(caseData.updated_at)}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <Card className="border-zinc-800/80 bg-zinc-950">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 rounded-xl bg-purple-600/10">
+                            <Lightbulb className="h-5 w-5 text-purple-400" strokeWidth={2.5} />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-white">
+                              {meetings?.length || 0}
+                            </p>
+                            <p className="text-xs font-semibold text-zinc-500 uppercase">
+                              Meetings
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-zinc-800/80 bg-zinc-950">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 rounded-xl bg-blue-600/10">
+                            <FileText className="h-5 w-5 text-blue-400" strokeWidth={2.5} />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-white">
+                              {caseDocuments?.length || 0}
+                            </p>
+                            <p className="text-xs font-semibold text-zinc-500 uppercase">
+                              Documents
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-zinc-800/80 bg-zinc-950">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 rounded-xl bg-green-600/10">
+                            <CheckSquare className="h-5 w-5 text-green-400" strokeWidth={2.5} />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold text-white">
+                              {actionItems?.length || 0}
+                            </p>
+                            <p className="text-xs font-semibold text-zinc-500 uppercase">
+                              Action Items
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </TabsContent>
 
               {/* Tabs Content */}
               <TabsContent value="meetings" className="space-y-4 mt-6">
@@ -676,6 +880,178 @@ export default function CaseDetail() {
                           Upload a meeting transcript to get started with AI
                           analysis
                         </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Case Documents Tab */}
+              <TabsContent value="documents" className="space-y-4 mt-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold tracking-tight text-white">
+                      Case Documents
+                    </h2>
+                    <Dialog open={isDocumentDialogOpen} onOpenChange={setIsDocumentDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="bg-zinc-800 hover:bg-zinc-700 text-white shadow-lg font-semibold text-sm h-10 px-5">
+                          <Plus className="h-4 w-4 mr-2" strokeWidth={2.5} />
+                          Add Document
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-zinc-950 border-zinc-800 shadow-2xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold tracking-tight text-white">
+                            Upload Case Document
+                          </DialogTitle>
+                          <DialogDescription className="text-sm font-medium text-zinc-400">
+                            Add documents (PDF, DOCX, TXT) to the case context for AI analysis
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-5 py-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-semibold text-white">
+                              Document Title
+                            </Label>
+                            <Input
+                              value={documentTitle}
+                              onChange={(e) => setDocumentTitle(e.target.value)}
+                              placeholder="e.g., Complaint Document"
+                              className="border-zinc-800 focus:border-zinc-700 h-11"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-semibold text-white">
+                              Description (Optional)
+                            </Label>
+                            <Textarea
+                              value={documentDescription}
+                              onChange={(e) => setDocumentDescription(e.target.value)}
+                              placeholder="Brief description of the document"
+                              className="border-zinc-800 focus:border-zinc-700"
+                              rows={3}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-semibold text-white">
+                              File
+                            </Label>
+                            <Input
+                              type="file"
+                              accept=".pdf,.docx,.doc,.txt"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0] || null;
+                                setDocumentFile(file);
+                                if (file && !documentTitle) {
+                                  setDocumentTitle(file.name.replace(/\.[^/.]+$/, ''));
+                                }
+                              }}
+                              className="border-zinc-800 focus:border-zinc-700 h-11"
+                            />
+                            <p className="text-xs text-zinc-500 font-medium">
+                              Supported: PDF, DOCX, TXT (max 50MB)
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-3 justify-end">
+                          <Button
+                            onClick={() => {
+                              setIsDocumentDialogOpen(false);
+                              setDocumentFile(null);
+                              setDocumentTitle("");
+                              setDocumentDescription("");
+                            }}
+                            className="bg-zinc-950 text-zinc-300 border border-zinc-800 hover:bg-zinc-900 h-11 px-6"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={() => uploadDocumentMutation.mutate()}
+                            disabled={!documentFile || !documentTitle || uploadDocumentMutation.isPending}
+                            className="bg-white text-black hover:bg-white/90 shadow-lg h-11 px-6"
+                          >
+                            {uploadDocumentMutation.isPending ? "Uploading..." : "Upload Document"}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+
+                  {caseDocuments && caseDocuments.length > 0 ? (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {caseDocuments.map((doc: CaseDocument) => (
+                        <Card key={doc.id} className="border-zinc-800/80 bg-zinc-950 shadow-sm hover:shadow-md transition-shadow">
+                          <CardContent className="p-5">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-start gap-3 flex-1">
+                                <div className="p-2.5 rounded-xl bg-blue-600/10 shadow-lg">
+                                  <FileText className="h-5 w-5 text-blue-400" strokeWidth={2.5} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-sm font-bold text-white truncate">
+                                    {doc.title}
+                                  </h3>
+                                  {doc.description && (
+                                    <p className="text-xs text-zinc-500 mt-1 line-clamp-2">
+                                      {doc.description}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center gap-3 mt-2 text-xs text-zinc-500">
+                                    <span className="uppercase font-semibold">{doc.file_type}</span>
+                                    <span>•</span>
+                                    <span>{(doc.file_size / 1024).toFixed(1)} KB</span>
+                                    <span>•</span>
+                                    <span>{formatDate(doc.uploaded_at)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-4 w-4 text-zinc-400" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
+                                  <DropdownMenuLabel className="text-zinc-400">Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator className="bg-zinc-800" />
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      if (confirm(`Are you sure you want to delete "${doc.title}"?`)) {
+                                        deleteDocumentMutation.mutate(doc.id);
+                                      }
+                                    }}
+                                    className="text-red-400 focus:text-red-400 focus:bg-red-400/10"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <Card className="border-zinc-800/80 bg-zinc-950">
+                      <CardContent className="flex flex-col items-center justify-center p-12 text-center">
+                        <div className="p-4 rounded-2xl bg-zinc-900/50 inline-block mb-4">
+                          <FileText className="h-12 w-12 text-zinc-600" strokeWidth={1.5} />
+                        </div>
+                        <h3 className="text-lg font-bold text-white mb-2">
+                          No documents yet
+                        </h3>
+                        <p className="text-sm text-zinc-500 mb-4">
+                          Upload case documents to provide context for AI analysis
+                        </p>
+                        <Button
+                          onClick={() => setIsDocumentDialogOpen(true)}
+                          className="bg-zinc-800 hover:bg-zinc-700 text-white"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add First Document
+                        </Button>
                       </CardContent>
                     </Card>
                   )}
@@ -975,6 +1351,31 @@ export default function CaseDetail() {
                   )}
                 </ScrollArea>
                 <div className="border-t border-zinc-800 p-4 bg-zinc-900/50">
+                  {/* Web Search Toggle */}
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={() => setWebSearchEnabled(!webSearchEnabled)}
+                        size="sm"
+                        variant={webSearchEnabled ? "default" : "outline"}
+                        className={cn(
+                          "h-7 px-3 text-xs font-semibold transition-all",
+                          webSearchEnabled
+                            ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                            : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-800 text-zinc-400"
+                        )}
+                      >
+                        <Globe className="h-3.5 w-3.5 mr-1.5" strokeWidth={2.5} />
+                        Web Search
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 font-medium">
+                      {webSearchEnabled 
+                        ? "Searching web + case context" 
+                        : "Case context only"}
+                    </p>
+                  </div>
+                  
                   <div className="flex gap-2">
                     <Textarea
                       value={chatInput}
@@ -985,7 +1386,9 @@ export default function CaseDetail() {
                           handleSendMessage();
                         }
                       }}
-                      placeholder="Ask about this case..."
+                      placeholder={webSearchEnabled 
+                        ? "Ask anything - searching web + case context..." 
+                        : "Ask about this case..."}
                       className="resize-none border-zinc-800 focus:border-zinc-900 focus:ring-zinc-900 min-h-20 text-sm"
                     />
                     <Button

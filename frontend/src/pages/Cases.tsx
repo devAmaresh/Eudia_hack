@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCases, createCase, deleteCase } from '@/lib/api';
+import { getCases, createCase, deleteCase, uploadCaseDocument } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, FileText, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, FileText, Trash2, ExternalLink, X } from 'lucide-react';
 import { cn, formatDate, getStatusColor } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import type { Case } from '@/types';
@@ -19,8 +20,10 @@ export default function Cases() {
     case_number: '',
     title: '',
     description: '',
+    client_side: '',
     status: 'active',
   });
+  const [caseFiles, setCaseFiles] = useState<File[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -33,11 +36,30 @@ export default function Cases() {
   });
 
   const createMutation = useMutation({
-    mutationFn: createCase,
-    onSuccess: () => {
+    mutationFn: async (data: typeof formData) => {
+      const response = await createCase(data);
+      return response.data;
+    },
+    onSuccess: async (newCase) => {
+      // Upload case documents if any
+      if (caseFiles.length > 0) {
+        for (const file of caseFiles) {
+          try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('title', file.name.replace(/\.[^/.]+$/, '')); // Remove extension
+            formData.append('description', `Initial case document: ${file.name}`);
+            await uploadCaseDocument(newCase.id, formData);
+          } catch (error) {
+            console.error('Failed to upload document:', file.name, error);
+          }
+        }
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['cases'] });
       setIsOpen(false);
-      setFormData({ case_number: '', title: '', description: '', status: 'active' });
+      setFormData({ case_number: '', title: '', description: '', client_side: '', status: 'active' });
+      setCaseFiles([]);
     },
   });
 
@@ -80,11 +102,11 @@ export default function Cases() {
                   New Case
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Create New Case</DialogTitle>
                   <DialogDescription>
-                    Add a new legal case to track meetings and insights
+                    Add a new legal case with initial documents and context
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -109,6 +131,25 @@ export default function Cases() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="client_side">Your Client's Side *</Label>
+                    <Select
+                      value={formData.client_side}
+                      onValueChange={(value) => setFormData({ ...formData, client_side: value })}
+                      required
+                    >
+                      <SelectTrigger id="client_side">
+                        <SelectValue placeholder="Select which side you represent" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-zinc-800">
+                        <SelectItem value="plaintiff">Plaintiff</SelectItem>
+                        <SelectItem value="defendant">Defendant</SelectItem>
+                        <SelectItem value="petitioner">Petitioner</SelectItem>
+                        <SelectItem value="respondent">Respondent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-zinc-500">This helps the AI understand your legal position</p>
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
@@ -117,6 +158,57 @@ export default function Cases() {
                       placeholder="Brief description of the case"
                       rows={3}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="case_files">Case Documents (Optional)</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="case_files"
+                          type="file"
+                          multiple
+                          accept=".pdf,.docx,.doc,.txt"
+                          onChange={(e) => {
+                            if (e.target.files) {
+                              setCaseFiles(Array.from(e.target.files));
+                            }
+                          }}
+                          className="file:mr-4 file:px-4 file:py-2 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-zinc-200 hover:file:bg-zinc-700"
+                        />
+                      </div>
+                      {caseFiles.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-zinc-500">Selected files:</p>
+                          <div className="space-y-1">
+                            {caseFiles.map((file, index) => (
+                              <div key={index} className="flex items-center justify-between bg-zinc-800/50 rounded-md px-3 py-2">
+                                <div className="flex items-center gap-2">
+                                  <FileText className="h-4 w-4 text-blue-400" />
+                                  <span className="text-sm text-zinc-300">{file.name}</span>
+                                  <span className="text-xs text-zinc-500">
+                                    ({(file.size / 1024).toFixed(1)} KB)
+                                  </span>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => {
+                                    setCaseFiles(caseFiles.filter((_, i) => i !== index));
+                                  }}
+                                >
+                                  <X className="h-4 w-4 text-zinc-400" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <p className="text-xs text-zinc-500">
+                        Upload initial case documents (PDF, DOCX, TXT). These will be used for AI context.
+                      </p>
+                    </div>
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
                     <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
