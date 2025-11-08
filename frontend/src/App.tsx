@@ -7,6 +7,7 @@ import CaseDetail from './pages/CaseDetail';
 import ChatAssistant from './pages/ChatAssistant';
 import ShareMeeting from './pages/ShareMeeting';
 import EmailHistory from './pages/EmailHistory';
+import Calendar from './pages/Calendar';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +29,7 @@ function App() {
             <Route path="cases" element={<Cases />} />
             <Route path="cases/:id" element={<CaseDetail />} />
             <Route path="chat" element={<ChatAssistant />} />
+            <Route path="calendar" element={<Calendar />} />
             <Route path="email-history" element={<EmailHistory />} />
           </Route>
           <Route path="/share-meeting/:meetingId" element={<ShareMeeting />} />

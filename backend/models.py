@@ -39,6 +39,7 @@ class Meeting(Base):
     case = relationship("Case", back_populates="meetings")
     insights = relationship("Insight", back_populates="meeting", cascade="all, delete-orphan")
     action_items = relationship("ActionItem", back_populates="meeting", cascade="all, delete-orphan")
+    calendar_event = relationship("CalendarEvent", back_populates="meeting", cascade="all, delete-orphan", uselist=False)
 
 
 class Insight(Base):
@@ -116,4 +117,57 @@ class CaseDocument(Base):
     uploaded_at = Column(DateTime, default=datetime.utcnow)
     
     case = relationship("Case", back_populates="documents")
+
+
+class CalendarEvent(Base):
+    __tablename__ = "calendar_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    case_id = Column(Integer, ForeignKey("cases.id"), nullable=True)
+    meeting_id = Column(Integer, ForeignKey("meetings.id"), nullable=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    event_type = Column(String, default="hearing")  # hearing, meeting, deadline, consultation, filing
+    location = Column(String, nullable=True)
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    all_day = Column(Boolean, default=False)
+    reminder_minutes = Column(Integer, default=30)  # minutes before event to remind
+    status = Column(String, default="scheduled")  # scheduled, completed, cancelled, rescheduled
+    color = Column(String, default="#3b82f6")  # hex color for calendar display
+    participants = Column(JSON, nullable=True)  # List of participants with roles
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
     case = relationship("Case")
+    meeting = relationship("Meeting", back_populates="calendar_event")
+    tasks = relationship("Task", back_populates="calendar_event", cascade="all, delete-orphan")
+
+
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    case_id = Column(Integer, ForeignKey("cases.id"), nullable=True)
+    calendar_event_id = Column(Integer, ForeignKey("calendar_events.id"), nullable=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    assigned_to = Column(String, nullable=True)
+    assignee_email = Column(String, nullable=True)
+    due_date = Column(DateTime, nullable=True)
+    status = Column(String, default="todo")  # todo, in_progress, review, done
+    priority = Column(String, default="medium")  # low, medium, high, critical
+    tags = Column(JSON, nullable=True)  # List of tags for categorization
+    estimated_hours = Column(Integer, nullable=True)
+    actual_hours = Column(Integer, nullable=True)
+    dependencies = Column(JSON, nullable=True)  # List of task IDs this depends on
+    attachments = Column(JSON, nullable=True)  # List of file paths
+    checklist = Column(JSON, nullable=True)  # List of sub-items with completion status
+    comments = Column(JSON, nullable=True)  # List of comments with timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    
+    case = relationship("Case")
+    calendar_event = relationship("CalendarEvent", back_populates="tasks")

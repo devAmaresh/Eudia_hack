@@ -97,4 +97,56 @@ export const getCaseDocuments = (caseId: number) =>
 export const deleteCaseDocument = (documentId: number) => 
   api.delete(`/api/case-documents/${documentId}`);
 
+// Calendar Events
+export const getCalendarEvents = (params?: {
+  start_date?: string;
+  end_date?: string;
+  case_id?: number;
+  event_type?: string;
+}) => api.get('/api/calendar/events', { params });
+
+export const getCalendarEvent = (id: number) => 
+  api.get(`/api/calendar/events/${id}`);
+
+export const createCalendarEvent = (data: any) => 
+  api.post('/api/calendar/events', data);
+
+export const updateCalendarEvent = (id: number, data: any) => 
+  api.put(`/api/calendar/events/${id}`, data);
+
+export const deleteCalendarEvent = (id: number) => 
+  api.delete(`/api/calendar/events/${id}`);
+
+export const getUpcomingEvents = (days: number = 7) => 
+  api.get('/api/calendar/upcoming', { params: { days } });
+
+// Tasks
+export const getTasks = (params?: {
+  case_id?: number;
+  calendar_event_id?: number;
+  status?: string;
+  assigned_to?: string;
+  priority?: string;
+}) => api.get('/api/calendar/tasks', { params });
+
+export const getTask = (id: number) => 
+  api.get(`/api/calendar/tasks/${id}`);
+
+export const createTask = (data: any) => 
+  api.post('/api/calendar/tasks', data);
+
+export const updateTask = (id: number, data: any) => 
+  api.put(`/api/calendar/tasks/${id}`, data);
+
+export const deleteTask = (id: number) => 
+  api.delete(`/api/calendar/tasks/${id}`);
+
+export const getEventTasks = (eventId: number) => 
+  api.get(`/api/calendar/events/${eventId}/tasks`);
+
+export const addTaskComment = (taskId: number, comment: string, author: string) => 
+  api.post(`/api/calendar/tasks/${taskId}/comment`, null, {
+    params: { comment, author }
+  });
+
 export default api;

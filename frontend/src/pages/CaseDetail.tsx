@@ -89,6 +89,12 @@ export default function CaseDetail() {
   const [isOpen, setIsOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [meetingTitle, setMeetingTitle] = useState("");
+  const [meetingDate, setMeetingDate] = useState<string>(() => {
+    // Default to today's date at 9 AM
+    const now = new Date();
+    now.setHours(9, 0, 0, 0);
+    return now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+  });
   const [expandedMeetings, setExpandedMeetings] = useState<Set<number>>(
     new Set()
   );
@@ -161,9 +167,14 @@ export default function CaseDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meetings", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
       setIsOpen(false);
       setFile(null);
       setMeetingTitle("");
+      // Reset to today at 9 AM
+      const now = new Date();
+      now.setHours(9, 0, 0, 0);
+      setMeetingDate(now.toISOString().slice(0, 16));
     },
   });
 
@@ -173,6 +184,7 @@ export default function CaseDetail() {
     mutationFn: deleteMeeting,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meetings", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-events"] }); // Refresh calendar
     },
   });
 
@@ -221,6 +233,10 @@ export default function CaseDetail() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("title", meetingTitle);
+    // Convert datetime-local to ISO without timezone shift
+    const date = new Date(meetingDate);
+    const isoDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+    formData.append("meeting_date", isoDate);
     uploadMutation.mutate(formData);
   };
 
@@ -458,6 +474,20 @@ export default function CaseDetail() {
                           placeholder="e.g., Initial Consultation"
                           className="border-zinc-800 focus:border-zinc-900 focus:ring-zinc-900 h-11"
                         />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold text-white">
+                          Meeting Date & Time
+                        </Label>
+                        <Input
+                          type="datetime-local"
+                          value={meetingDate}
+                          onChange={(e) => setMeetingDate(e.target.value)}
+                          className="border-zinc-800 focus:border-zinc-900 focus:ring-zinc-900 h-11"
+                        />
+                        <p className="text-xs text-zinc-500 font-medium">
+                          When did/will this meeting occur? This will appear on your calendar.
+                        </p>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm font-semibold text-white">

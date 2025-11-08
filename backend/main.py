@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import cases, meetings, chat, dashboard, action_items, email, case_documents
+from routers import cases, meetings, chat, dashboard, action_items, email, case_documents, calendar
 import os
 
 # Create database tables
@@ -34,6 +34,7 @@ app.include_router(dashboard.router)
 app.include_router(action_items.router)
 app.include_router(email.router)
 app.include_router(case_documents.router)
+app.include_router(calendar.router)
 
 
 @app.get("/")

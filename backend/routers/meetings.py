@@ -22,6 +22,7 @@ os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 async def create_meeting(
     case_id: int = Form(...),
     title: str = Form(...),
+    meeting_date: Optional[str] = Form(None),
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -47,12 +48,22 @@ async def create_meeting(
         await out_file.write(content)
     
     # Create meeting record
+    # Parse meeting_date if provided, otherwise use current time
+    parsed_meeting_date = datetime.utcnow()
+    if meeting_date:
+        try:
+            # Parse ISO format datetime string
+            parsed_meeting_date = datetime.fromisoformat(meeting_date.replace('Z', '+00:00'))
+        except (ValueError, AttributeError):
+            # If parsing fails, use current time
+            parsed_meeting_date = datetime.utcnow()
+    
     db_meeting = Meeting(
         case_id=case_id,
         title=title,
         file_path=file_path,
         file_type=file_extension,
-        meeting_date=datetime.utcnow()
+        meeting_date=parsed_meeting_date
     )
     db.add(db_meeting)
     db.commit()
@@ -111,6 +122,24 @@ async def create_meeting(
     db.commit()
     db.refresh(db_meeting)
     
+    # Auto-create calendar event for this meeting/hearing
+    from models import CalendarEvent
+    calendar_event = CalendarEvent(
+        case_id=case_id,
+        meeting_id=db_meeting.id,
+        title=f"Hearing: {title}",
+        description=db_meeting.summary if db_meeting.summary else "Meeting/Hearing record",
+        event_type="hearing",
+        start_time=db_meeting.meeting_date,
+        end_time=db_meeting.meeting_date,  # Can be updated later
+        all_day=False,
+        status="completed",  # Since it already happened
+        color="#ef4444",  # Red for hearings
+        notes=f"Auto-created from meeting upload. Transcript available."
+    )
+    db.add(calendar_event)
+    db.commit()
+    
     # Store in Pinecone for vector search
     await pinecone_service.store_meeting_content(
         meeting_id=db_meeting.id,
@@ -166,6 +195,10 @@ async def delete_meeting(meeting_id: int, db: Session = Depends(get_db)):
         await pinecone_service.delete_meeting_content(meeting_id)
     except Exception as e:
         print(f"Error deleting meeting {meeting_id} from Pinecone: {e}")
+    
+    # Delete associated calendar event
+    from models import CalendarEvent
+    db.query(CalendarEvent).filter(CalendarEvent.meeting_id == meeting_id).delete()
     
     # Delete insights associated with this meeting
     db.query(Insight).filter(Insight.meeting_id == meeting_id).delete()

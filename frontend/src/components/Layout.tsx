@@ -5,6 +5,7 @@ import {
   FileText,
   MessageSquare,
   Mail,
+  Calendar,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import { useState } from "react";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Cases", href: "/cases", icon: FileText },
+  { name: "Calendar & Tasks", href: "/calendar", icon: Calendar },
   { name: "AI Assistant", href: "/chat", icon: MessageSquare },
   { name: "Email History", href: "/email-history", icon: Mail },
 ];

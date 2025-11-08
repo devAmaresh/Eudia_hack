@@ -108,3 +108,57 @@ export interface DashboardData {
   upcoming_deadlines: ActionItem[];
   critical_insights: Insight[];
 }
+
+export interface CalendarEvent {
+  id: number;
+  case_id?: number;
+  meeting_id?: number;
+  title: string;
+  description?: string;
+  event_type: 'hearing' | 'meeting' | 'deadline' | 'consultation' | 'filing';
+  location?: string;
+  start_time: string;
+  end_time: string;
+  all_day: boolean;
+  reminder_minutes: number;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'rescheduled';
+  color: string;
+  participants?: Array<{
+    name: string;
+    email?: string;
+    role?: string;
+  }>;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Task {
+  id: number;
+  case_id?: number;
+  calendar_event_id?: number;
+  title: string;
+  description?: string;
+  assigned_to?: string;
+  assignee_email?: string;
+  due_date?: string;
+  status: 'todo' | 'in_progress' | 'review' | 'done';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  tags?: string[];
+  estimated_hours?: number;
+  actual_hours?: number;
+  dependencies?: number[];
+  attachments?: string[];
+  checklist?: Array<{
+    item: string;
+    completed: boolean;
+  }>;
+  comments?: Array<{
+    author: string;
+    comment: string;
+    timestamp: string;
+  }>;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+}

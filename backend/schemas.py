@@ -136,3 +136,102 @@ class DashboardData(BaseModel):
     recent_cases: List[CaseResponse]
     upcoming_deadlines: List[ActionItemResponse]
     critical_insights: List[InsightResponse]
+
+
+# Calendar Event Schemas
+class CalendarEventBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    event_type: str = "hearing"  # hearing, meeting, deadline, consultation, filing
+    location: Optional[str] = None
+    start_time: datetime
+    end_time: datetime
+    all_day: bool = False
+    reminder_minutes: int = 30
+    color: str = "#3b82f6"
+    participants: Optional[List[Dict[str, Any]]] = None
+    notes: Optional[str] = None
+
+
+class CalendarEventCreate(CalendarEventBase):
+    case_id: Optional[int] = None
+    meeting_id: Optional[int] = None
+
+
+class CalendarEventUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    event_type: Optional[str] = None
+    location: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    all_day: Optional[bool] = None
+    reminder_minutes: Optional[int] = None
+    status: Optional[str] = None
+    color: Optional[str] = None
+    participants: Optional[List[Dict[str, Any]]] = None
+    notes: Optional[str] = None
+
+
+class CalendarEventResponse(CalendarEventBase):
+    id: int
+    case_id: Optional[int] = None
+    meeting_id: Optional[int] = None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Task Schemas
+class TaskBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    assigned_to: Optional[str] = None
+    assignee_email: Optional[str] = None
+    due_date: Optional[datetime] = None
+    status: str = "todo"  # todo, in_progress, review, done
+    priority: str = "medium"  # low, medium, high, critical
+    tags: Optional[List[str]] = None
+    estimated_hours: Optional[int] = None
+    actual_hours: Optional[int] = None
+    dependencies: Optional[List[int]] = None
+    attachments: Optional[List[str]] = None
+    checklist: Optional[List[Dict[str, Any]]] = None
+    comments: Optional[List[Dict[str, Any]]] = None
+
+
+class TaskCreate(TaskBase):
+    case_id: Optional[int] = None
+    calendar_event_id: Optional[int] = None
+
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    assigned_to: Optional[str] = None
+    assignee_email: Optional[str] = None
+    due_date: Optional[datetime] = None
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    tags: Optional[List[str]] = None
+    estimated_hours: Optional[int] = None
+    actual_hours: Optional[int] = None
+    dependencies: Optional[List[int]] = None
+    attachments: Optional[List[str]] = None
+    checklist: Optional[List[Dict[str, Any]]] = None
+    comments: Optional[List[Dict[str, Any]]] = None
+
+
+class TaskResponse(TaskBase):
+    id: int
+    case_id: Optional[int] = None
+    calendar_event_id: Optional[int] = None
+    created_at: datetime
+    updated_at: datetime
+    completed_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
