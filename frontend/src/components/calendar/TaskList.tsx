@@ -148,14 +148,14 @@ export function TaskList({
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <Badge
                   className={cn(
-                    'text-xs font-semibold rounded-md px-2 py-0.5',
+                    'text-xs font-semibold rounded-md',
                     task.priority === 'critical' && 'bg-red-500/10 text-red-400 border border-red-500/20',
                     task.priority === 'high' && 'bg-orange-500/10 text-orange-400 border border-orange-500/20',
                     task.priority === 'medium' && 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
                     task.priority === 'low' && 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
                   )}
                 >
-                  {task.priority.toUpperCase()}
+                  {task.priority}
                 </Badge>
                 {task.due_date && (
                   <span className="text-xs text-zinc-500 flex items-center gap-1">
@@ -187,20 +187,39 @@ export function TaskList({
   const renderFilteredView = () => {
     if (filter === 'all') {
       // Group by status
-      return Object.entries(groupedTasks).map(([status, statusTasks]) => {
-        const statusInfo = TASK_STATUSES.find((s) => s.value === status);
-        if ((statusTasks as Task[]).length === 0) return null;
+      const groups = Object.entries(groupedTasks)
+        .map(([status, statusTasks]) => {
+          const statusInfo = TASK_STATUSES.find((s) => s.value === status);
+          if ((statusTasks as Task[]).length === 0) return null;
 
-        return (
-          <div key={status}>
-            <h3 className="text-sm font-semibold text-zinc-400 mb-2 flex items-center gap-2">
-              {statusInfo && <statusInfo.icon className="h-4 w-4" />}
-              {statusInfo?.label} ({(statusTasks as Task[]).length})
-            </h3>
-            <div className="space-y-2">{(statusTasks as Task[]).map(renderTask)}</div>
-          </div>
-        );
-      });
+          const getStatusColor = (statusValue: string) => {
+            switch (statusValue) {
+              case 'done':
+                return 'text-green-400';
+              case 'in_progress':
+                return 'text-blue-400';
+              case 'review':
+                return 'text-orange-400';
+              case 'todo':
+                return 'text-zinc-400';
+              default:
+                return 'text-zinc-400';
+            }
+          };
+
+          return (
+            <div key={status} className="space-y-2">
+              <h3 className={cn('text-xs font-semibold mb-2 flex items-center gap-2', getStatusColor(status))}>
+                {statusInfo && <statusInfo.icon className="h-4 w-4" />}
+                {statusInfo?.label} ({(statusTasks as Task[]).length})
+              </h3>
+              <div className="space-y-2">{(statusTasks as Task[]).map(renderTask)}</div>
+            </div>
+          );
+        })
+        .filter(Boolean);
+
+      return <>{groups}</>;
     } else {
       // Flat list with optional headers
       if (filteredTasks.length === 0) return null;
@@ -231,7 +250,7 @@ export function TaskList({
       };
 
       return (
-        <div>
+        <div className="space-y-2">
           {getHeader()}
           <div className="space-y-2">{filteredTasks.map(renderTask)}</div>
         </div>
@@ -239,19 +258,17 @@ export function TaskList({
     }
   };
 
-  return (
-    <div className="space-y-4">
-      {renderFilteredView()}
+  if (filteredTasks.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <CheckCircle2 className="h-12 w-12 text-zinc-600 mx-auto mb-3" strokeWidth={1.5} />
+        <p className="text-zinc-500 text-sm">{filter === 'today' ? 'No tasks due today' : 'No tasks match the filter'}</p>
+        <p className="text-zinc-600 text-xs mt-1">
+          {filter === 'today' && statusFilter === 'all' ? '(Excluding completed tasks)' : ''}
+        </p>
+      </div>
+    );
+  }
 
-      {filteredTasks.length === 0 && (
-        <div className="text-center py-12">
-          <CheckCircle2 className="h-12 w-12 text-zinc-600 mx-auto mb-3" strokeWidth={1.5} />
-          <p className="text-zinc-500 text-sm">{filter === 'today' ? 'No tasks due today' : 'No tasks match the filter'}</p>
-          <p className="text-zinc-600 text-xs mt-1">
-            {filter === 'today' && statusFilter === 'all' ? '(Excluding completed tasks)' : ''}
-          </p>
-        </div>
-      )}
-    </div>
-  );
+  return <div className="space-y-4">{renderFilteredView()}</div>;
 }

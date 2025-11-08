@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from database import engine, Base
 from routers import cases, meetings, chat, dashboard, action_items, email, case_documents, calendar
 import os
@@ -16,6 +17,9 @@ app = FastAPI(
     description="AI-Powered Court Hearing and Client Assistant",
     version="1.0.0"
 )
+
+# Mount static files for uploads
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # CORS middleware
 app.add_middleware(

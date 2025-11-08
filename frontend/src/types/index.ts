@@ -28,6 +28,7 @@ export interface Meeting {
   title: string;
   meeting_date: string;
   file_type?: string;
+  file_path?: string;
   transcript?: string;
   summary?: string;
   minutes?: string;

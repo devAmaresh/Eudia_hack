@@ -68,6 +68,7 @@ def send_meeting_summary(
             summary=meeting.summary or "No summary available",
             minutes=meeting.minutes or "No minutes available",
             insights=insights_data,
+            file_path=meeting.file_path,
         )
         
         if not success:

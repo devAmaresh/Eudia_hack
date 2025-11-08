@@ -1,4 +1,3 @@
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle2 } from 'lucide-react';
@@ -85,7 +84,7 @@ export function TaskSidebar({
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
+      <div className="flex-1 overflow-y-auto p-4">
         <TaskList
           tasks={tasks}
           onUpdateTask={onUpdateTask}
@@ -94,7 +93,7 @@ export function TaskSidebar({
           filter={taskFilter}
           statusFilter={taskStatusFilter}
         />
-      </ScrollArea>
+      </div>
     </div>
   );
 }

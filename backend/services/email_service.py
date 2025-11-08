@@ -21,6 +21,7 @@ class EmailService:
         summary: str,
         minutes: str,
         insights: List[dict],
+        file_path: str = None,
     ) -> bool:
         """Send meeting summary and insights via email"""
         
@@ -37,6 +38,7 @@ class EmailService:
                 summary=summary,
                 minutes=minutes,
                 insights=insights,
+                file_path=file_path,
             )
 
             # Prepare recipient list for Mailtrap
@@ -68,11 +70,19 @@ class EmailService:
         summary: str,
         minutes: str,
         insights: List[dict],
+        file_path: str = None,
     ) -> str:
         """Create HTML email template"""
         
         # Format meeting date
         formatted_date = meeting_date.strftime("%B %d, %Y at %I:%M %p")
+        
+        # Extract filename from file_path if provided
+        transcript_filename = None
+        transcript_url = None
+        if file_path:
+            transcript_filename = file_path.split('/')[-1] if '/' in file_path else file_path.split('\\')[-1]
+            transcript_url = f"http://localhost:8000/uploads/{transcript_filename}"
         
         # Build insights HTML
         insights_html = ""
@@ -163,16 +173,26 @@ class EmailService:
                         </div>
                     </div>
                     
-                    <!-- Minutes Section -->
+                    <!-- Raw Transcript Section -->
+                    {f'''
                     <div style="margin-bottom: 32px;">
                         <h3 style="color: #ffffff; font-size: 18px; font-weight: 600; margin: 0 0 12px 0; display: flex; align-items: center;">
-                            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; margin-right: 12px;"></span>
-                            Meeting Minutes
+                            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; margin-right: 12px;"></span>
+                            Raw Transcript
                         </h3>
-                        <div style="background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 20px; color: #d4d4d8; font-size: 15px; line-height: 1.7;">
-                            {minutes.replace(chr(10), '<br>')}
+                        <div style="background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 20px;">
+                            <a href="{transcript_url}" 
+                               style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+                                      color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; 
+                                      font-weight: 600; font-size: 14px; transition: all 0.2s;">
+                                View Raw Transcript File
+                            </a>
+                            <p style="color: #71717a; font-size: 13px; margin: 12px 0 0 0;">
+                                Click the button above to view the complete raw transcript of this meeting.
+                            </p>
                         </div>
                     </div>
+                    ''' if transcript_url else ''}
                     
                     {insights_html}
                 </div>

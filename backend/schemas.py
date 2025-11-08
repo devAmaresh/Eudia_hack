@@ -44,6 +44,7 @@ class MeetingResponse(MeetingBase):
     id: int
     case_id: int
     file_type: Optional[str] = None
+    file_path: Optional[str] = None
     transcript: Optional[str] = None
     summary: Optional[str] = None
     minutes: Optional[str] = None

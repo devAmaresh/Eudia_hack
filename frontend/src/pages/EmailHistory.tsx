@@ -97,7 +97,15 @@ export default function EmailHistory() {
                           <div className="flex items-center gap-2 text-xs text-zinc-500">
                             <Clock className="h-3.5 w-3.5" strokeWidth={2.5} />
                             <span>
-                              {formatDistanceToNow(new Date(log.sent_at), { addSuffix: true })}
+                              {formatDistanceToNow(new Date(log.sent_at + 'Z'), { addSuffix: true })} • {new Date(log.sent_at + 'Z').toLocaleString('en-IN', { 
+                                timeZone: 'Asia/Kolkata',
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
                             </span>
                           </div>
                         </div>
