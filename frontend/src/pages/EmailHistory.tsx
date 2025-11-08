@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getEmailHistory } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, CheckCircle, XCircle, Clock, FileText, Briefcase } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Mail, CheckCircle, XCircle, Clock, FileText, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,16 +20,32 @@ interface EmailLog {
   sent_at: string;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export default function EmailHistory() {
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
   
   const { data: emailLogs, isLoading } = useQuery({
     queryKey: ['email-history'],
     queryFn: async () => {
       const response = await getEmailHistory();
-      return response.data as EmailLog[];
+      // Sort by sent_at descending (latest first)
+      const logs = response.data as EmailLog[];
+      return logs.sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime());
     },
   });
+
+  // Pagination logic
+  const totalPages = emailLogs ? Math.ceil(emailLogs.length / ITEMS_PER_PAGE) : 0;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentEmails = emailLogs?.slice(startIndex, endIndex) || [];
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   if (isLoading) {
     return (
@@ -66,9 +84,9 @@ export default function EmailHistory() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            {emailLogs && emailLogs.length > 0 ? (
+            {currentEmails && currentEmails.length > 0 ? (
               <div className="divide-y divide-zinc-800/50">
-                {emailLogs.map((log) => (
+                {currentEmails.map((log) => (
                   <div
                     key={log.id}
                     onClick={() => navigate(`/cases/${log.case_id}`)}
@@ -162,6 +180,58 @@ export default function EmailHistory() {
                 <p className="text-xs text-zinc-500 mt-1">
                   Email history will appear here once you share meeting summaries
                 </p>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {emailLogs && emailLogs.length > ITEMS_PER_PAGE && (
+              <div className="border-t border-zinc-800/50 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-zinc-400">
+                    Showing {startIndex + 1}-{Math.min(endIndex, emailLogs.length)} of {emailLogs.length} emails
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <Button
+                          key={page}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => goToPage(page)}
+                          className={`w-9 h-9 p-0 ${
+                            currentPage === page
+                              ? 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700'
+                              : 'bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-white'
+                          }`}
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>

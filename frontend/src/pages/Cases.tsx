@@ -235,8 +235,8 @@ export default function Cases() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-linear-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-600/30 group-hover:shadow-blue-600/50 transition-shadow">
-                          <FileText className="h-5 w-5 text-white" strokeWidth={2.5} />
+                        <div className="p-2.5 rounded-xl bg-linear-to-br from-blue-600 to-blue-700">
+                          <FileText className="h-5 w-5 text-white" strokeWidth={1.5} />
                         </div>
                         <CardTitle className="text-lg font-bold tracking-tight text-white">{caseItem.title}</CardTitle>
                       </div>
