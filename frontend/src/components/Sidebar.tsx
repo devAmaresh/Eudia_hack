@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Scale,
   LayoutDashboard,
@@ -8,9 +8,11 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -22,7 +24,13 @@ const navigation = [
 
 export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    navigate('/landing');
+  };
 
   return (
     <div
@@ -34,8 +42,8 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex h-[73px] items-center justify-between px-4 border-b border-zinc-800/50">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-purple-700 shadow-lg">
-            <Scale className="h-6 w-6 text-white" strokeWidth={2.5} />
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl ">
+            <img src="/logo.png" alt="LexiCase Logo" className="h-11 w-11" />
           </div>
           {sidebarOpen && (
             <div>
@@ -107,12 +115,20 @@ export default function Sidebar() {
 
       {/* Footer */}
       {sidebarOpen && (
-        <div className="border-t border-zinc-800/50 px-6 py-4">
+        <div className="border-t border-zinc-800/50 px-6 py-4 space-y-4">
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            size="sm"
+            className="w-full border-zinc-700/50 text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </Button>
           <div className="text-[11px] text-zinc-500">
             <p className="font-semibold text-zinc-300 tracking-wide">
               TEAM NIRVANA
             </p>
-            <p className="mt-1 tracking-wide">Powered by ❤️</p>
           </div>
         </div>
       )}
