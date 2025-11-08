@@ -101,14 +101,23 @@ async def update_calendar_event(
 
 @router.delete("/events/{event_id}")
 async def delete_calendar_event(event_id: int, db: Session = Depends(get_db)):
-    """Delete a calendar event"""
+    """Delete a calendar event and all its associated tasks"""
     db_event = db.query(CalendarEvent).filter(CalendarEvent.id == event_id).first()
     if not db_event:
         raise HTTPException(status_code=404, detail="Event not found")
     
+    # Count associated tasks before deletion (for info)
+    task_count = db.query(Task).filter(Task.calendar_event_id == event_id).count()
+    
+    # Delete the event (cascade will handle tasks automatically due to relationship in models.py)
     db.delete(db_event)
     db.commit()
-    return {"message": "Event deleted successfully"}
+    
+    return {
+        "message": "Event deleted successfully",
+        "event_id": event_id,
+        "deleted_tasks": task_count
+    }
 
 
 @router.get("/upcoming", response_model=List[CalendarEventResponse])

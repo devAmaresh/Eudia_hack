@@ -4,7 +4,7 @@ from typing import Optional
 from database import get_db
 from models import Meeting, Case, Insight, ActionItem
 from schemas import MeetingResponse, InsightResponse, ActionItemResponse
-from services.gemini_service import gemini_service
+from services.langchain_gemini_service import langchain_gemini_service  # Updated to LangChain service
 from services.pinecone_service import pinecone_service
 import os
 import aiofiles
@@ -79,8 +79,8 @@ async def create_meeting(
         # In production, you'd use speech recognition here
         transcript = "Audio transcription would be processed here using speech-to-text service."
     
-    # Analyze transcript with Gemini
-    analysis = await gemini_service.analyze_transcript(transcript)
+    # Analyze transcript with LangChain Gemini service
+    analysis = await langchain_gemini_service.analyze_transcript(transcript)
     
     # Update meeting with analysis results
     db_meeting.transcript = transcript

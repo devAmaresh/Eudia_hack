@@ -49,7 +49,7 @@ export function ActionItemsList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-h-[100vh] overflow-y-auto">
       {actionItems.map((item: ActionItem) => (
         <Card key={item.id} className="border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm shadow-lg hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-200 hover:border-zinc-700/50">
           <CardContent className="p-6">

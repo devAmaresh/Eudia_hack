@@ -3,9 +3,8 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import ChatHistory, Case, Meeting, Insight, ActionItem
 from schemas import ChatMessage, ChatResponse
-from services.gemini_service import gemini_service
+from services.langchain_gemini_service import langchain_gemini_service  # New LangChain service
 from services.pinecone_service import pinecone_service
-from services.search_service import search_service
 import uuid
 from datetime import datetime
 
@@ -94,52 +93,34 @@ async def chat(message: ChatMessage, db: Session = Depends(get_db)):
                     if meeting_id:
                         sources.append(f"Meeting (ID: {meeting_id})")
     
-    # Get chat history
-    history = db.query(ChatHistory).filter(
-        ChatHistory.session_id == session_id
-    ).order_by(ChatHistory.created_at.desc()).limit(10).all()
+    # Use LangChain Gemini service with tool calling
+    print(f"[Chat] Context length: {len(context)} chars", flush=True)
+    print(f"[Chat] Web search enabled: {message.web_search}", flush=True)
     
-    history_list = [
-        {"user": h.user_message, "assistant": h.bot_response}
-        for h in reversed(history)
-    ]
-    
-    # Web search if enabled
-    if message.web_search:
-        web_results = await search_service.search_web(message.message)
-        if web_results:
-            context += "\n\nWeb Search Results:\n"
-            for result in web_results[:5]:  # Top 5 results
-                context += f"- {result['title']}\n"
-                context += f"  {result['snippet']}\n"
-                context += f"  Source: {result['url']}\n\n"
-                sources.append(result['url'])
-    
-    # Check if we need external citations (legal context)
-    if any(keyword in message.message.lower() for keyword in ["case law", "precedent", "citation", "legal reference", "court decision", "ruling"]):
-        citations = await search_service.search_legal_citations(message.message)
-        if citations:
-            context += "\n\nLegal Citations & Precedents:\n"
-            for citation in citations:
-                context += f"- {citation['title']}\n"
-                context += f"  {citation['snippet']}\n"
-                context += f"  Source: {citation['url']}\n\n"
-                sources.append(citation['url'])
-    
-    # Get response from Gemini
-    print(context,flush=True)
-    response_text = await gemini_service.chat_with_context(
+    result = await langchain_gemini_service.chat_with_tools(
         message=message.message,
-        context=context,
-        history=history_list
+        case_context=context,
+        session_id=session_id,
+        web_search_enabled=message.web_search
     )
+    
+    response_text = result["response"]
+    web_sources = result.get("sources", [])
+    
+    # Ensure response_text is a string (not a list or dict)
+    if not isinstance(response_text, str):
+        response_text = str(response_text)
+    
+    # Combine sources from Pinecone and web search
+    if web_sources:
+        sources.extend(web_sources)
     
     # Save to chat history
     chat_record = ChatHistory(
         session_id=session_id,
         case_id=message.case_id,
         user_message=message.message,
-        bot_response=response_text,
+        bot_response=response_text,  # Now guaranteed to be a string
         context_used={"sources": sources} if sources else None
     )
     db.add(chat_record)
