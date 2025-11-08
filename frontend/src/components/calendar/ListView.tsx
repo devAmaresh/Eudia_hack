@@ -80,7 +80,7 @@ export function ListView({ events, tasks, onEventClick, onTaskClick, onTaskDelet
         {sortedGroups.map(([dateKey, group]: any) => (
           <div key={dateKey} className="space-y-3">
             {/* Date Header */}
-            <div className="sticky top-0 bg-black/80 backdrop-blur-sm z-10 py-2 border-b border-zinc-800">
+            <div className="sticky top-0 backdrop-blur-sm z-10 py-2 border-b border-zinc-800">
               <div className="flex items-center gap-3">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">
                   {group.label}

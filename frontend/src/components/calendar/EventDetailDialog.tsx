@@ -19,25 +19,29 @@ interface EventDetailDialogProps {
 export function EventDetailDialog({ event, onClose, onDelete, tasks }: EventDetailDialogProps) {
   return (
     <Dialog open={!!event} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl">
+      <DialogContent className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 border-zinc-800/50 max-w-2xl backdrop-blur-xl shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-white flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: event.color }} />
-            {event.title}
+          <DialogTitle className="text-white flex items-center gap-3 text-xl">
+            <div className="w-4 h-4 rounded-full shadow-lg" style={{ backgroundColor: event.color }} />
+            <span className="font-bold">{event.title}</span>
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2 text-zinc-300">
-              <Clock className="h-4 w-4 text-zinc-500" />
-              <span>
+        <div className="space-y-6">
+          <div className="space-y-3 text-sm bg-zinc-900/50 backdrop-blur-sm p-4 rounded-lg border border-zinc-800/50">
+            <div className="flex items-center gap-3 text-zinc-200">
+              <div className="p-2 rounded-lg bg-blue-600/10 border border-blue-600/20">
+                <Clock className="h-4 w-4 text-blue-400" />
+              </div>
+              <span className="font-medium">
                 {new Date(event.start_time).toLocaleString()} - {new Date(event.end_time).toLocaleTimeString()}
               </span>
             </div>
             {event.location && (
-              <div className="flex items-center gap-2 text-zinc-300">
-                <MapPin className="h-4 w-4 text-zinc-500" />
-                <span>{event.location}</span>
+              <div className="flex items-center gap-3 text-zinc-200">
+                <div className="p-2 rounded-lg bg-purple-600/10 border border-purple-600/20">
+                  <MapPin className="h-4 w-4 text-purple-400" />
+                </div>
+                <span className="font-medium">{event.location}</span>
               </div>
             )}
             {event.case_id && (
@@ -46,26 +50,32 @@ export function EventDetailDialog({ event, onClose, onDelete, tasks }: EventDeta
                   variant="outline"
                   size="sm"
                   onClick={() => (window.location.href = `/cases/${event.case_id}`)}
-                  className="border-blue-600 text-blue-400 hover:bg-blue-600/10"
+                  className="border-blue-600/50 text-blue-400 hover:bg-blue-600/10 bg-blue-950/20 backdrop-blur-sm"
                 >
                   <MapPin className="h-4 w-4 mr-2" />
                   View Case Details
                 </Button>
               </div>
             )}
-            {event.description && <p className="text-zinc-400 mt-2">{event.description}</p>}
+            {event.description && (
+              <div className="pt-3 border-t border-zinc-800/50">
+                <p className="text-zinc-300 leading-relaxed">{event.description}</p>
+              </div>
+            )}
           </div>
 
           {tasks.length > 0 && (
-            <div className="border-t border-zinc-800 pt-4">
-              <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5" />
-                Related Tasks ({tasks.length})
+            <div className="border-t border-zinc-800/50 pt-6">
+              <h4 className="font-bold text-white mb-4 flex items-center gap-3 text-lg">
+                <div className="p-2 rounded-lg bg-green-600/10 border border-green-600/20">
+                  <CheckCircle2 className="h-5 w-5 text-green-400" />
+                </div>
+                <span>Related Tasks ({tasks.length})</span>
               </h4>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {tasks.map((task) => (
-                  <Card key={task.id} className="border-zinc-800 bg-zinc-900/50 hover:bg-zinc-900 transition-colors">
-                    <CardContent className="p-3">
+                  <Card key={task.id} className="border-zinc-800/50 bg-zinc-900/30 hover:bg-zinc-900/60 transition-all duration-200 backdrop-blur-sm hover:border-zinc-700/50 hover:shadow-lg">
+                    <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <CheckCircle2
                           className={cn('h-4 w-4 mt-0.5 shrink-0', task.status === 'done' ? 'text-green-400' : 'text-zinc-600')}
@@ -114,7 +124,7 @@ export function EventDetailDialog({ event, onClose, onDelete, tasks }: EventDeta
             </div>
           )}
 
-          <div className="flex justify-between pt-4 border-t border-zinc-800">
+          <div className="flex justify-between pt-6 border-t border-zinc-800/50">
             <Button
               variant="outline"
               onClick={() => {
@@ -122,12 +132,12 @@ export function EventDetailDialog({ event, onClose, onDelete, tasks }: EventDeta
                   onDelete();
                 }
               }}
-              className="border-red-600 text-red-500 hover:bg-red-600/10"
+              className="border-red-600/50 text-red-400 hover:bg-red-600/10 bg-red-950/20 backdrop-blur-sm shadow-lg"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete Event
             </Button>
-            <Button onClick={onClose} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={onClose} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
               Close
             </Button>
           </div>

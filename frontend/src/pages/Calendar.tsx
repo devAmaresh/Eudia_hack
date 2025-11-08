@@ -190,8 +190,8 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="flex h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
+      <div className="flex h-screen relative z-10">
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
@@ -211,12 +211,12 @@ export default function CalendarPage() {
             EventFormComponent={
               <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-900/50">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Event
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-zinc-950 border-zinc-800 max-w-2xl">
+                <DialogContent className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 border-zinc-800/50 max-w-2xl backdrop-blur-xl shadow-2xl">
                   <EventForm
                     cases={cases}
                     onSubmit={(data: any) => createEventMutation.mutate(data)}
@@ -229,12 +229,12 @@ export default function CalendarPage() {
             TaskFormComponent={
               <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="border-zinc-700">
+                  <Button variant="outline" className="border-zinc-700/50 hover:bg-zinc-800/50 backdrop-blur-sm shadow-lg">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Task
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-zinc-950 border-zinc-800 max-w-2xl">
+                <DialogContent className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 border-zinc-800/50 max-w-2xl backdrop-blur-xl shadow-2xl">
                   <TaskForm
                     cases={cases}
                     events={events}
@@ -247,7 +247,7 @@ export default function CalendarPage() {
           />
 
           {/* Calendar View */}
-          <div className="flex-1 overflow-auto p-6">
+          <div className="flex-1 overflow-auto p-6 backdrop-blur-sm">
             {viewMode === 'month' ? (
               <MonthView
                 currentDate={currentDate}

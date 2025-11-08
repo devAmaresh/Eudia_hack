@@ -23,28 +23,28 @@ export function DatePopover({
   return (
     <>
       <div
-        className="fixed inset-0 z-40"
+        className="fixed inset-0 z-40 backdrop-blur-sm bg-black/20"
         onClick={onClose}
       />
       <div
-        className="fixed z-50 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl p-3 min-w-[200px]"
+        className="fixed z-50 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-xl shadow-2xl backdrop-blur-xl p-4 min-w-[240px]"
         style={{
           left: `${position.x}px`,
           top: `${position.y + 8}px`
         }}
       >
-        <div className="text-sm font-semibold text-white mb-2">
+        <div className="text-sm font-bold text-white mb-3 pb-3 border-b border-zinc-800/50">
           {selectedDate.toLocaleDateString('en-US', {
             weekday: 'long',
             month: 'long',
             day: 'numeric'
           })}
         </div>
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start text-sm"
+            className="w-full justify-start text-sm hover:bg-blue-600/10 hover:text-blue-400 transition-all"
             onClick={() => {
               onClose();
               onAddEvent();
@@ -56,7 +56,7 @@ export function DatePopover({
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start text-sm"
+            className="w-full justify-start text-sm hover:bg-purple-600/10 hover:text-purple-400 transition-all"
             onClick={() => {
               onClose();
               onAddTask();
@@ -67,26 +67,28 @@ export function DatePopover({
           </Button>
         </div>
         {events.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-zinc-800">
-            <div className="text-xs text-zinc-500 mb-2">Events on this day:</div>
-            {events.map(event => (
-              <div
-                key={event.id}
-                onClick={() => {
-                  onClose();
-                  onEventClick(event);
-                }}
-                className="text-xs px-2 py-1.5 rounded cursor-pointer hover:bg-zinc-800 transition-colors mb-1"
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: event.color }}
-                  />
-                  <span className="text-white">{event.title}</span>
+          <div className="mt-4 pt-4 border-t border-zinc-800/50">
+            <div className="text-xs font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Events Today</div>
+            <div className="space-y-2">
+              {events.map(event => (
+                <div
+                  key={event.id}
+                  onClick={() => {
+                    onClose();
+                    onEventClick(event);
+                  }}
+                  className="text-xs px-3 py-2 rounded-lg cursor-pointer hover:bg-zinc-800/50 transition-all duration-200 border border-transparent hover:border-zinc-700/50"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full shadow-lg"
+                      style={{ backgroundColor: event.color }}
+                    />
+                    <span className="text-white font-medium">{event.title}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>

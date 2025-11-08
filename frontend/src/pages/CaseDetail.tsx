@@ -295,10 +295,10 @@ export default function CaseDetail() {
 
   if (!caseData) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
         <div className="text-center">
-          <div className="h-16 w-16 rounded-2xl bg-zinc-900 animate-pulse mx-auto mb-4"></div>
-          <p className="text-sm font-semibold text-zinc-400">Loading case details...</p>
+          <div className="h-16 w-16 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 animate-pulse mx-auto mb-4 shadow-lg shadow-blue-900/50"></div>
+          <p className="text-sm font-semibold text-zinc-300">Loading case details...</p>
         </div>
       </div>
     );
@@ -307,41 +307,42 @@ export default function CaseDetail() {
   const allInsights = insightsQueries.data || {};
 
   return (
-    <div className="min-h-screen bg-black">
-      <CaseHeader caseNumber={caseData.case_number} title={caseData.title} status={caseData.status} />
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
+      <div className="relative z-10">
+        <CaseHeader caseNumber={caseData.case_number} title={caseData.title} status={caseData.status} />
 
-      {/* Main Content */}
-      <div className="mx-auto p-8">
+        {/* Main Content */}
+        <div className="mx-auto p-8">
         <div className="flex gap-8">
           {/* Left Column - Tabs */}
           <div className="flex-1">
             <Tabs defaultValue="details" className="space-y-6">
               <div className="flex items-center justify-between">
-                <TabsList className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 p-1 h-auto shadow-lg">
+                <TabsList className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800/50  h-auto shadow-2xl rounded-xl">
                   <TabsTrigger
                     value="details"
-                    className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-semibold text-sm tracking-tight px-6 py-2.5 rounded-lg text-zinc-400"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold text-sm tracking-tight px-6 py-2 rounded-lg text-zinc-400 transition-all duration-200"
                   >
                     <Info className="h-4 w-4 mr-2" />
                     Case Details
                   </TabsTrigger>
                   <TabsTrigger
                     value="meetings"
-                    className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-semibold text-sm tracking-tight px-6 py-2.5 rounded-lg text-zinc-400"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold text-sm tracking-tight px-6 py-2 rounded-lg text-zinc-400 transition-all duration-200"
                   >
                     <Lightbulb className="h-4 w-4 mr-2" />
                     Meeting Insights
                   </TabsTrigger>
                   <TabsTrigger
                     value="documents"
-                    className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-semibold text-sm tracking-tight px-6 py-2.5 rounded-lg text-zinc-400"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold text-sm tracking-tight px-6 py-2 rounded-lg text-zinc-400 transition-all duration-200"
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Case Documents
                   </TabsTrigger>
                   <TabsTrigger
                     value="actions"
-                    className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-semibold text-sm tracking-tight px-6 py-2.5 rounded-lg text-zinc-400"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold text-sm tracking-tight px-6 py-2 rounded-lg text-zinc-400 transition-all duration-200"
                   >
                     <CheckSquare className="h-4 w-4 mr-2" />
                     Action Items
@@ -445,6 +446,7 @@ export default function CaseDetail() {
 
       {/* Insight Detail Modal */}
       <InsightDetailDialog insight={selectedInsight} isOpen={isInsightModalOpen} onOpenChange={setIsInsightModalOpen} />
+      </div>
     </div>
   );
 }

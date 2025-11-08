@@ -182,20 +182,20 @@ export default function ChatAssistant() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black flex">
+    <div className="min-h-screen bg-zinc-950 flex">
       {/* Chat History Sidebar */}
-      <div className="w-80 shrink-0 bg-zinc-950 border-r border-zinc-800/80 flex flex-col h-screen">
+      <div className="w-80 shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col h-screen">
         {/* Sidebar Header */}
-        <div className="p-6 border-b border-zinc-800/80 shrink-0">
-          <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2 mb-4">
-            <MessageSquare className="h-5 w-5" />
+        <div className="p-6 border-b border-zinc-800 shrink-0">
+          <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2.5 mb-4">
+            <MessageSquare className="h-4 w-4" strokeWidth={2.5} />
             Chat History
           </h2>
           <Button
             onClick={startNewChat}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2" strokeWidth={2.5} />
             New Chat
           </Button>
         </div>
@@ -209,48 +209,48 @@ export default function ChatAssistant() {
                   <Card
                     key={session.session_id}
                     className={cn(
-                      "border-zinc-800/80 cursor-pointer transition-all hover:bg-zinc-900/80 group",
+                      "border-zinc-800 cursor-pointer transition-colors hover:bg-zinc-900 group",
                       currentSessionId === session.session_id
-                        ? "bg-zinc-900 border-blue-600/50"
-                        : "bg-zinc-950/50"
+                        ? "bg-zinc-900 border-blue-600"
+                        : "bg-transparent"
                     )}
                     onClick={() => loadChatHistory(session.session_id)}
                   >
                     <CardContent className="p-4 overflow-visible">
-                      <div className="flex items-start gap-3 mb-2">
-                        <p className="text-sm font-medium text-white line-clamp-1 flex-1 overflow-hidden ">
+                      <div className="flex items-start gap-3 mb-2.5">
+                        <p className="text-sm font-semibold text-white line-clamp-2 flex-1 overflow-hidden leading-snug">
                           {session.first_message}
                         </p>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0 shrink-0 text-zinc-400 hover:text-red-500 hover:bg-red-500/10"
+                          className="h-6 w-6 p-0 shrink-0 text-zinc-500 hover:text-red-400 hover:bg-transparent"
                           onClick={(e) =>
                             handleDeleteSession(session.session_id, e)
                           }
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
                         </Button>
                       </div>
 
                       {session.case && (
-                        <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                          <Badge className="text-[10px] bg-blue-600/20 text-blue-400 border-blue-600/30 shrink-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                          <Badge className="text-[10px] font-bold bg-blue-600/10 text-blue-500 border-blue-600/20 shrink-0">
                             {session.case.case_number}
                           </Badge>
-                          <span className="text-xs text-zinc-400 leading-snug wrap-break-word">
+                          <span className="text-xs font-medium text-zinc-500 leading-snug wrap-break-word">
                             {session.case.title}
                           </span>
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between text-xs text-zinc-500 mt-2">
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="h-3 w-3" />
-                          <span>{session.message_count} messages</span>
+                      <div className="flex items-center justify-between text-xs font-medium text-zinc-500 mt-2">
+                        <div className="flex items-center gap-1.5">
+                          <MessageSquare className="h-3 w-3" strokeWidth={2} />
+                          <span>{session.message_count}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="h-3 w-3" strokeWidth={2} />
                           <span>
                             {new Date(session.updated_at).toLocaleDateString()}
                           </span>
@@ -260,16 +260,16 @@ export default function ChatAssistant() {
                   </Card>
                 ))
               ) : (
-                <Card className="border-zinc-800/80 bg-zinc-900/50">
-                  <CardContent className="text-center py-8">
+                <Card className="border-zinc-800 bg-transparent">
+                  <CardContent className="text-center py-12">
                     <MessageSquare
-                      className="h-12 w-12 text-zinc-600 mx-auto mb-3"
-                      strokeWidth={1.5}
+                      className="h-10 w-10 text-zinc-700 mx-auto mb-3"
+                      strokeWidth={2}
                     />
-                    <p className="text-sm font-medium text-zinc-500">
+                    <p className="text-sm font-semibold text-zinc-600">
                       No chat history yet
                     </p>
-                    <p className="text-xs text-zinc-600 mt-1">
+                    <p className="text-xs font-medium text-zinc-700 mt-1">
                       Start a new conversation
                     </p>
                   </CardContent>
@@ -283,22 +283,22 @@ export default function ChatAssistant() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-800/60">
-          <div className="px-8 py-4">
+        <div className="bg-zinc-950 border-b border-zinc-800">
+          <div className="px-8 py-5">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-white">
+                <h1 className="text-xl font-bold tracking-tight text-white">
                   AI Legal Assistant
                 </h1>
-                <p className="mt-1 text-sm font-medium text-zinc-400">
+                <p className="mt-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                   {currentSessionId
-                    ? `Session: ${currentSessionId.substring(0, 12)}...`
+                    ? `Session ${currentSessionId.substring(0, 8)}`
                     : "New conversation"}
                 </p>
               </div>
-              <div className="w-72">
+              <div className="w-80">
                 <Select value={selectedCase} onValueChange={setSelectedCase}>
-                  <SelectTrigger className="bg-zinc-900 border-zinc-800">
+                  <SelectTrigger className="bg-zinc-900 border-zinc-800 font-medium text-sm">
                     <SelectValue placeholder="Select a case (optional)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -318,9 +318,9 @@ export default function ChatAssistant() {
         {/* Chat Container */}
         <div className="flex-1 flex flex-col overflow-hidden p-8">
           {/* Messages */}
-          <Card className="flex-1 flex flex-col overflow-hidden border-zinc-800/80 bg-zinc-950">
-            <ScrollArea className="flex-1 p-6" ref={scrollRef}>
-              <div className="space-y-6 max-w-4xl mx-auto  max-h-[60vh] overflow-auto">
+          <Card className="flex-1 flex flex-col overflow-hidden border-zinc-800 bg-zinc-950">
+            <ScrollArea className="flex-1 p-8" ref={scrollRef}>
+              <div className="space-y-6 max-w-4xl mx-auto max-h-[60vh] overflow-auto">
                 {messages.map((message, index) => (
                   <ChatMessage
                     key={index}
@@ -333,11 +333,11 @@ export default function ChatAssistant() {
                 {chatMutation.isPending && (
                   <div className="flex gap-4 justify-start">
                     <div className="shrink-0">
-                      <div className="h-10 w-10 rounded-xl bg-linear-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-600/25 flex items-center justify-center">
+                      <div className="h-9 w-9 rounded-lg bg-blue-600 flex items-center justify-center">
                         <Bot className="h-5 w-5 text-white" strokeWidth={2.5} />
                       </div>
                     </div>
-                    <div className="bg-zinc-900/80 border border-zinc-800/80 rounded-2xl px-5 py-4">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3">
                       <div className="flex gap-1.5">
                         <div
                           className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce"
@@ -359,26 +359,26 @@ export default function ChatAssistant() {
             </ScrollArea>
 
             {/* Input */}
-            <div className="border-t border-zinc-800 p-4">
+            <div className="border-t border-zinc-800 p-5">
               {/* Web Search Toggle */}
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between">
                 <Button
                   onClick={() => setWebSearchEnabled(!webSearchEnabled)}
                   size="sm"
                   variant={webSearchEnabled ? "default" : "outline"}
                   className={cn(
-                    "h-8 px-3 text-xs font-semibold transition-all",
+                    "h-8 px-4 text-xs font-bold transition-colors",
                     webSearchEnabled
                       ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                      : "bg-zinc-800 border-zinc-700 hover:bg-zinc-700 text-zinc-400"
+                      : "bg-transparent border-zinc-700 hover:border-zinc-600 text-zinc-400 hover:text-zinc-300"
                   )}
                 >
-                  <Globe className="h-3.5 w-3.5 mr-1.5" strokeWidth={2.5} />
+                  <Globe className="h-3.5 w-3.5 mr-2" strokeWidth={2.5} />
                   Web Search
                 </Button>
                 {webSearchEnabled && (
-                  <span className="text-xs text-blue-400 font-medium animate-pulse">
-                    • Searching web + case data
+                  <span className="text-xs text-blue-500 font-semibold">
+                    Searching web + case data
                   </span>
                 )}
               </div>
@@ -392,18 +392,18 @@ export default function ChatAssistant() {
                       ? "Ask anything - searching web + cases..."
                       : "Ask about cases, meetings, insights..."
                   }
-                  className="flex-1 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600"
+                  className="flex-1 h-11 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 font-medium text-sm focus-visible:border-blue-600"
                   disabled={chatMutation.isPending}
                 />
                 <Button
                   type="submit"
                   disabled={!input.trim() || chatMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700 shadow-lg"
+                  className="h-11 px-5 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-4 w-4" strokeWidth={2.5} />
                 </Button>
               </form>
-              <p className="text-xs text-zinc-500 mt-2 px-1">
+              <p className="text-xs font-medium text-zinc-600 mt-3 px-1">
                 {selectedCase &&
                 cases?.find((c) => c.id.toString() === selectedCase)
                   ? `Context: ${
@@ -416,23 +416,23 @@ export default function ChatAssistant() {
           </Card>
 
           {/* Quick Actions */}
-          <div className="mt-4 grid grid-cols-2 gap-3 max-w-4xl mx-auto w-full">
+          <div className="mt-5 grid grid-cols-2 gap-3 max-w-4xl mx-auto w-full">
             <Button
               onClick={() =>
                 setInput("What are the critical insights from recent meetings?")
               }
               variant="outline"
-              className="bg-zinc-950 text-zinc-300 border-zinc-800 hover:bg-zinc-900 justify-start"
+              className="h-11 bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-300 hover:bg-zinc-900 justify-start font-semibold text-sm"
             >
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 mr-2.5" strokeWidth={2} />
               Critical insights
             </Button>
             <Button
               onClick={() => setInput("What are the pending action items?")}
               variant="outline"
-              className="bg-zinc-950 text-zinc-300 border-zinc-800 hover:bg-zinc-900 justify-start"
+              className="h-11 bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-300 hover:bg-zinc-900 justify-start font-semibold text-sm"
             >
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 mr-2.5" strokeWidth={2} />
               Pending actions
             </Button>
           </div>

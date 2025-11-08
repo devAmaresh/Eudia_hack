@@ -21,14 +21,14 @@ interface DocumentsListProps {
 export function DocumentsList({ documents, onDelete, onAddDocument }: DocumentsListProps) {
   if (!documents || documents.length === 0) {
     return (
-      <Card className="border-zinc-800/80 bg-zinc-950">
-        <CardContent className="flex flex-col items-center justify-center p-12 text-center">
-          <div className="p-4 rounded-2xl bg-zinc-900/50 inline-block mb-4">
-            <FileText className="h-12 w-12 text-zinc-600" strokeWidth={1.5} />
+      <Card className="border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm shadow-2xl">
+        <CardContent className="flex flex-col items-center justify-center p-16 text-center">
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 inline-block mb-5 shadow-lg">
+            <FileText className="h-14 w-14 text-white" strokeWidth={2} />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">No documents yet</h3>
-          <p className="text-sm text-zinc-500 mb-4">Upload case documents to provide context for AI analysis</p>
-          <Button onClick={onAddDocument} className="bg-zinc-800 hover:bg-zinc-700 text-white">
+          <h3 className="text-xl font-bold text-white mb-3">No documents yet</h3>
+          <p className="text-sm text-zinc-400 mb-6 max-w-md">Upload case documents to provide context for AI analysis and enhance insights</p>
+          <Button onClick={onAddDocument} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg font-semibold">
             <Plus className="h-4 w-4 mr-2" />
             Add First Document
           </Button>
@@ -38,26 +38,26 @@ export function DocumentsList({ documents, onDelete, onAddDocument }: DocumentsL
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-6 md:grid-cols-2">
       {documents.map((doc: CaseDocument) => (
-        <Card key={doc.id} className="border-zinc-800/80 bg-zinc-950 shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-5">
+        <Card key={doc.id} className="border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm shadow-lg hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-200 hover:border-zinc-700/50">
+          <CardContent className="p-6">
             <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3 flex-1">
-                <div className="p-2.5 rounded-xl bg-blue-600/10 shadow-lg">
-                  <FileText className="h-5 w-5 text-blue-400" strokeWidth={2.5} />
+              <div className="flex items-start gap-4 flex-1">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-900/50">
+                  <FileText className="h-6 w-6 text-white" strokeWidth={2.5} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-bold text-white truncate">{doc.title}</h3>
+                  <h3 className="text-base font-bold text-white truncate">{doc.title}</h3>
                   {doc.description && (
-                    <p className="text-xs text-zinc-500 mt-1 line-clamp-2">{doc.description}</p>
+                    <p className="text-xs text-zinc-400 mt-2 line-clamp-2 font-medium">{doc.description}</p>
                   )}
-                  <div className="flex items-center gap-3 mt-2 text-xs text-zinc-500">
-                    <span className="uppercase font-semibold">{doc.file_type}</span>
+                  <div className="flex items-center gap-3 mt-3 text-xs text-zinc-500">
+                    <span className="uppercase font-bold bg-zinc-800/50 px-2 py-1 rounded-lg">{doc.file_type}</span>
                     <span>•</span>
-                    <span>{(doc.file_size / 1024).toFixed(1)} KB</span>
+                    <span className="font-semibold">{(doc.file_size / 1024).toFixed(1)} KB</span>
                     <span>•</span>
-                    <span>{formatDate(doc.uploaded_at)}</span>
+                    <span className="font-semibold">{formatDate(doc.uploaded_at)}</span>
                   </div>
                 </div>
               </div>

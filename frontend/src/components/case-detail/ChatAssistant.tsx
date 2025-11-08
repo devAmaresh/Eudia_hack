@@ -48,36 +48,38 @@ export function ChatAssistant({
   }, [messages]);
 
   return (
-    <Card className="border-zinc-800/80 bg-zinc-950 shadow-xl sticky top-24 overflow-hidden">
-      <CardHeader className="bg-zinc-900 text-white pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-bold tracking-tight flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-zinc-950/10 backdrop-blur-sm">
-              <Bot className="h-5 w-5" strokeWidth={2.5} />
-            </div>
+    <Card className="border-zinc-800/50 bg-zinc-900/30 backdrop-blur-xl shadow-2xl sticky top-24 overflow-hidden">
+      <CardHeader className="bg-gradient-to-b from-zinc-900 to-zinc-900/50 text-white pb-5 border-b border-zinc-800/50 relative">
+        {/* Gradient Glow */}
+        <div className="absolute top-0 right-0 w-48 h-24 bg-blue-600/10 rounded-full blur-3xl" />
+        
+        <div className="flex items-center justify-between relative z-10">
+          <CardTitle className="text-xl font-bold tracking-tight flex items-center gap-3">
             Legal AI Assistant
           </CardTitle>
           <Button
             onClick={onNewChat}
             size="sm"
             variant="outline"
-            className="bg-zinc-800/50 border-zinc-700 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 h-8 px-3"
+            className="bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 h-9 px-4 font-semibold backdrop-blur-sm shadow-lg"
           >
-            <Plus className="h-3.5 w-3.5 mr-1.5" strokeWidth={2.5} />
+            <Plus className="h-4 w-4 mr-2" strokeWidth={2.5} />
             New
           </Button>
         </div>
-        <CardDescription className="text-zinc-200 text-xs font-medium mt-2">
+        <CardDescription className="text-zinc-300 text-sm font-medium mt-3">
           Ask questions about this case, meetings, and insights
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[500px] p-6">
+        <ScrollArea className="h-[500px] p-6 bg-zinc-950/20">
           {messages.length === 0 ? (
-            <div className="text-center py-12">
-              <Bot className="h-16 w-16 text-zinc-300 mx-auto mb-4" strokeWidth={1.5} />
-              <p className="text-sm font-semibold text-zinc-500 mb-2">Start a conversation</p>
-              <p className="text-xs text-zinc-400">Ask me anything about this case</p>
+            <div className="text-center py-16">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 inline-block mb-5 shadow-lg shadow-blue-900/50">
+                <Bot className="h-16 w-16 text-white mx-auto" strokeWidth={2} />
+              </div>
+              <p className="text-base font-bold text-zinc-300 mb-2">Start a conversation</p>
+              <p className="text-sm text-zinc-500">Ask me anything about this case</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -117,31 +119,31 @@ export function ChatAssistant({
             </div>
           )}
         </ScrollArea>
-        <div className="border-t border-zinc-800 p-4 bg-zinc-900/50">
+        <div className="border-t border-zinc-800/50 p-5 bg-zinc-900/50 backdrop-blur-sm">
           {/* Web Search Toggle */}
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button
                 onClick={onToggleWebSearch}
                 size="sm"
                 variant={webSearchEnabled ? 'default' : 'outline'}
                 className={cn(
-                  'h-7 px-3 text-xs font-semibold transition-all',
+                  'h-9 px-4 text-xs font-bold transition-all shadow-lg',
                   webSearchEnabled
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600'
-                    : 'bg-zinc-800/50 border-zinc-700 hover:bg-zinc-800 text-zinc-400'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-blue-600'
+                    : 'bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-800 text-zinc-400 backdrop-blur-sm'
                 )}
               >
-                <Globe className="h-3.5 w-3.5 mr-1.5" strokeWidth={2.5} />
+                <Globe className="h-4 w-4 mr-2" strokeWidth={2.5} />
                 Web Search
               </Button>
             </div>
-            <p className="text-[10px] text-zinc-500 font-medium">
+            <p className="text-xs text-zinc-400 font-semibold">
               {webSearchEnabled ? 'Searching web + case context' : 'Case context only'}
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Textarea
               value={input}
               onChange={(e) => onInputChange(e.target.value)}
@@ -154,17 +156,17 @@ export function ChatAssistant({
               placeholder={
                 webSearchEnabled ? 'Ask anything - searching web + case context...' : 'Ask about this case...'
               }
-              className="resize-none border-zinc-800 focus:border-zinc-900 focus:ring-zinc-900 min-h-20 text-sm"
+              className="resize-none border-zinc-800/50 focus:border-zinc-700 focus:ring-zinc-700 min-h-20 text-sm bg-zinc-950/50 backdrop-blur-sm shadow-lg font-medium"
             />
             <Button
               onClick={onSendMessage}
               disabled={!input.trim() || isLoading}
-              className="bg-linear-to-r from-zinc-900 to-zinc-700 hover:from-zinc-800 hover:to-zinc-600 text-white shadow-lg shadow-zinc-900/25 h-auto px-4"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-900/50 h-auto px-5 font-semibold"
             >
-              <Send className="h-4 w-4" strokeWidth={2.5} />
+              <Send className="h-5 w-5" strokeWidth={2.5} />
             </Button>
           </div>
-          <p className="text-[10px] text-zinc-400 mt-2 font-medium">
+          <p className="text-xs text-zinc-500 mt-3 font-medium">
             Press Enter to send, Shift+Enter for new line
           </p>
         </div>

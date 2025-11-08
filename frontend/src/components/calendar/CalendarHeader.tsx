@@ -38,14 +38,25 @@ export function CalendarHeader({
   TaskFormComponent,
 }: CalendarHeaderProps) {
   return (
-    <div className="shrink-0 border-b border-zinc-800 bg-zinc-950/50 backdrop-blur-sm">
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between mb-4">
+    <div className="shrink-0 border-b border-zinc-800/50 bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900/50 backdrop-blur-xl relative">
+      {/* Gradient Glow */}
+      <div className="absolute top-0 left-1/4 w-96 h-32 bg-blue-600/10 rounded-full blur-3xl" />
+      <div className="absolute top-0 right-1/4 w-96 h-32 bg-purple-600/10 rounded-full blur-3xl" />
+      
+      <div className="px-6 py-6 relative z-10">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Calendar & Tasks</h1>
-            <p className="text-sm text-zinc-400 mt-1">Manage hearings, meetings, and deadlines</p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              <span className="text-zinc-100">
+                Calendar & Tasks
+              </span>
+            </h1>
+            <p className="text-sm text-zinc-400 mt-2 flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4" />
+              Manage hearings, meetings, and deadlines with AI precision
+            </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {EventFormComponent}
             {TaskFormComponent}
           </div>
@@ -53,55 +64,62 @@ export function CalendarHeader({
 
         {/* Controls */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onNavigate('prev')}
-              className="border-zinc-700"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onToday}
-              className="border-zinc-700"
-            >
-              Today
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onNavigate('next')}
-              className="border-zinc-700"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <div className="text-lg font-semibold text-white ml-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 bg-zinc-900/80 backdrop-blur-sm rounded-lg p-1 border border-zinc-800/50 shadow-lg">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onNavigate('prev')}
+                className="hover:bg-zinc-800/50 h-9"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToday}
+                className="hover:bg-zinc-800/50 px-6 h-9 font-semibold"
+              >
+                Today
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onNavigate('next')}
+                className="hover:bg-zinc-800/50 h-9"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="text-base font-bold text-white px-4 py-2 bg-zinc-900/50 backdrop-blur-sm rounded-lg border border-zinc-800/50">
               {dateHeader}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Select value={filterEventType} onValueChange={(value) => onFilterChange(value === 'all' ? undefined : value)}>
-              <SelectTrigger className="w-[180px] border-zinc-700">
+              <SelectTrigger className="w-[180px] border-zinc-700/50 bg-zinc-900/50 backdrop-blur-sm h-9">
                 <SelectValue placeholder="All Events" />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-zinc-800">
-                <SelectItem value="all">All Events</SelectItem>
-                <SelectItem value="hearing">Hearings</SelectItem>
-                <SelectItem value="meeting">Meetings</SelectItem>
-                <SelectItem value="deadline">Deadlines</SelectItem>
+                <SelectItem value="all">✨ All Events</SelectItem>
+                <SelectItem value="hearing">⚖️ Hearings</SelectItem>
+                <SelectItem value="meeting">🤝 Meetings</SelectItem>
+                <SelectItem value="deadline">⏰ Deadlines</SelectItem>
               </SelectContent>
             </Select>
 
-            <div className="flex items-center gap-1 bg-zinc-900 rounded-lg p-1 border border-zinc-800">
+            <div className="flex items-center gap-1 bg-zinc-900/80 backdrop-blur-sm rounded-lg p-1 border border-zinc-800/50 shadow-lg">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onViewModeChange('month')}
-                className={cn(viewMode === 'month' && "bg-zinc-800")}
+                className={cn(
+                  "h-9 transition-all",
+                  viewMode === 'month' 
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
+                    : "hover:bg-zinc-800/50"
+                )}
               >
                 <CalendarIcon className="h-4 w-4 mr-2" />
                 Month
@@ -110,7 +128,12 @@ export function CalendarHeader({
                 variant="ghost"
                 size="sm"
                 onClick={() => onViewModeChange('list')}
-                className={cn(viewMode === 'list' && "bg-zinc-800")}
+                className={cn(
+                  "h-9 transition-all",
+                  viewMode === 'list' 
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
+                    : "hover:bg-zinc-800/50"
+                )}
               >
                 <List className="h-4 w-4 mr-2" />
                 List

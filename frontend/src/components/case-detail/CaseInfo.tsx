@@ -9,8 +9,8 @@ interface CaseInfoProps {
 
 export function CaseInfo({ caseData }: CaseInfoProps) {
   return (
-    <Card className="border-zinc-800/80 bg-zinc-950 shadow-lg">
-      <CardContent className="p-6 space-y-6">
+    <Card className="border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm shadow-2xl">
+      <CardContent className="p-8 space-y-8">
         {/* Case Number and Status */}
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-2">
@@ -36,9 +36,9 @@ export function CaseInfo({ caseData }: CaseInfoProps) {
                 </p>
               </div>
             </div>
-            <div className="mt-3 p-4 rounded-lg bg-blue-950/30 border border-blue-900/30">
+            <div className="mt-3 px-5 py-4 rounded-xl bg-gradient-to-br from-blue-950/50 to-blue-900/30 border border-blue-800/50 backdrop-blur-sm shadow-lg">
               <p className="text-sm text-blue-200 leading-relaxed">
-                <span className="font-semibold">AI Context:</span> The legal assistant will tailor responses
+                <span className="font-bold">AI Context:</span> The legal assistant will tailor responses
                 considering your position as the {caseData.client_side}, providing strategic insights and
                 recommendations aligned with your client's interests.
               </p>
@@ -53,8 +53,8 @@ export function CaseInfo({ caseData }: CaseInfoProps) {
               <FileText className="h-4 w-4" strokeWidth={2.5} />
               Description
             </div>
-            <div className="p-4 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
-              <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">
+            <div className="px-5 py-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50 backdrop-blur-sm shadow-lg">
+              <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap font-medium">
                 {caseData.description}
               </p>
             </div>
